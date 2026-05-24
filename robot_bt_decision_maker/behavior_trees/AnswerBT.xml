@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <ReactiveSequence>
+            <Action ID="UpdateMapinfo"/>
+            <Condition ID="IfGameStart"/>
+            <Action ID="NavVelRemap"/>
+            <Action ID="GoBase"/>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Action ID="GoBase"/>
+        <Condition ID="IfGameStart"/>
+        <Action ID="NavVelRemap"/>
+        <Action ID="UpdateMapinfo"/>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>

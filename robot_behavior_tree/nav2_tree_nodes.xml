@@ -1,0 +1,9 @@
+<root>
+    <TreeNodesModel>
+        <Action ID="GoBase"/>
+        <Condition ID="IfGameStart"/>
+        <Action ID="NavVelRemap"/>
+        <Action ID="UpdateMapinfo"/>
+    </TreeNodesModel>
+</root>
+
