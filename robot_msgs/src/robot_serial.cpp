@@ -95,19 +95,19 @@ namespace messageprocess
         return true;
     }
 
-    bool RobotMsgProcess::SendFireCommand()
+    bool RobotMsgProcess::SendFireCommand(double theta)
     {
     }
 
-    bool RobotMsgProcess::SendMoveMsgs() {}
+    bool RobotMsgProcess::SendMoveMsgs(double x, double y) {}
 
-    bool RobotMsgProcess::receive_password()
+    int64_t RobotMsgProcess::receive_password()
     {
 
         return SUCCESS;
     };
 
-    bool RobotMsgProcess::send_password() {
+    bool RobotMsgProcess::send_password(uint64_t Password1, uint64_t Password2) {
     };
 
 }

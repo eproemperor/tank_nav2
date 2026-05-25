@@ -42,7 +42,7 @@ namespace messageprocess
     message_data head
     {
         uint64_t header = 0xAA;
-        uint64_t length;
+        uint64_t length = 0;
         uint64_t id = 0;
     };
 
@@ -136,6 +136,7 @@ namespace messageprocess
 
     // 序列化数据-创建对象
     ms::Writer<head, tail> robot_writer;
+    
 
 }
 
