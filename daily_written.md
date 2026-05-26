@@ -4,3 +4,6 @@ task:
 5.25
     串口框架搭建，serialpro学习
     剩余：writer注册与消息回调，串口发送函数
+
+5.26
+    maybe I finished this task,but there still has problems.What worse is that I cloud not even check it.
