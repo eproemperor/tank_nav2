@@ -7,8 +7,8 @@
 息时为int64_t类型的完整密码；
 帧尾部分只有一个uint64_t类型的校验0xBB。
 */
-#ifndef ROBOT_MSGS.H
-#define ROBOT_MSGS .H
+#ifndef ROBOT_MSGS_H
+#define ROBOT_MSGS_H
 
 #include <iostream>
 #include <iomanip>
@@ -33,11 +33,11 @@ namespace messageprocess
 #define SHOOT 1
 #define UNSHOOT 0
 #define SEND 0
-#define RECEIVED #define
-#define UP 90.0;
-#define LEFT 180.0;
-#define DOWN 270.0;
-#define RIGHT 0.0;
+#define RECEIVED 1
+#define UP 90.0
+#define LEFT 180.0
+#define DOWN 270.0
+#define RIGHT 0.0
 
     message_data head
     {
@@ -52,6 +52,11 @@ namespace messageprocess
         uint64_t Password2;
     };
 
+    message_data PassWordData_ // 接收到的密码片段
+    {
+        uint64_t Password_rec_part;
+    };
+
     message_data password_receive // 接收到的密码
     {
         int64_t Password_rec;
@@ -59,9 +64,9 @@ namespace messageprocess
 
     message_data pose_move_send // 位置姿态移动
     {
-        double pose_x;
-        double pose_y;
-        double theta;
+        double pose_x = 0.0;
+        double pose_y = 0.0;
+        double theta = RIGHT;
     };
 
     message_data shoot_msg_send
@@ -74,12 +79,11 @@ namespace messageprocess
         uint64_t tail_msg = 0xBB;
     };
 
-
-    class RobotMsgProcess : public ms::Writer<head, tail>
+    class RobotMsgProcess 
     {
 
     private:
-        int receive_account = 0;
+        int receive_account = 0;  //接收计数，用于统计接收片段数量
         uint64_t Password1;
         uint64_t Password2;
         int64_t Password_rec;
@@ -92,6 +96,9 @@ namespace messageprocess
         std::string last_error;
         bool is_open;
         bool configurePort();
+        bool initwriter();
+
+        void ls_f(const std::string& raw_data);
 
     public:
         RobotMsgProcess(const std::string &port = "/dev/pts/2");
@@ -105,10 +112,10 @@ namespace messageprocess
         bool isOpen() const { return is_open; }
 
         /*
-         *@brief 接收密码片段
+         *@brief 接收密码
          *
          */
-        int64_t receive_password();
+        bool receive_password();
 
         /*
          *@brief 发送密码
@@ -132,11 +139,11 @@ namespace messageprocess
          *@param theta
          */
         bool SendFireCommand(double theta);
-    };
 
-    // 序列化数据-创建对象
-    ms::Writer<head, tail> robot_writer;
-    
+    private:
+        ms::Writer<head, tail> robot_writer;
+        ms::Listener<head,tail> robot_listener;
+    };
 
 }
 

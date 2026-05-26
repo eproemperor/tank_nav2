@@ -5,8 +5,12 @@ namespace messageprocess
 #define BAUDRATE B115200
 
     RobotMsgProcess::RobotMsgProcess(const std::string &port)
-        : fd(-1), port_name(port), is_open(false), last_error("")
+        : fd(-1), port_name(port), is_open(false),
+          last_error(""), robot_listener([](const head &h)
+                                         { return h.length; }, [](const head &h)
+                                         { return h.id; })
     {
+        RobotMsgProcess::initwriter();
     }
 
     RobotMsgProcess::~RobotMsgProcess()
@@ -82,8 +86,8 @@ namespace messageprocess
         options.c_oflag &= ~OPOST;
 
         // 设置读取超时
-        options.c_cc[VMIN] = 0;
-        options.c_cc[VTIME] = 10;
+        options.c_cc[VMIN] = 40;
+        options.c_cc[VTIME] = 5;
 
         tcflush(fd, TCIOFLUSH);
 
@@ -95,19 +99,79 @@ namespace messageprocess
         return true;
     }
 
-    bool RobotMsgProcess::SendFireCommand(double theta)
+    void RobotMsgProcess::ls_f(const std::string &raw_data)
     {
     }
 
-    bool RobotMsgProcess::SendMoveMsgs(double x, double y) {}
-
-    int64_t RobotMsgProcess::receive_password()
+    bool RobotMsgProcess::initwriter()
     {
+        robot_writer.registerSetter([](head &h, int s)
+                                    { h.length = s; });
+        robot_writer.registerSetter([](tail &t, const uint8_t *data, int s)
+                                    { t.tail_msg = 0xBB; });
+        robot_listener.registerCallback(RECEIVED, [this](const std::string &raw_data)
+                                        {
+                    switch(receive_account){
+                        case 0:
+                    Password1 = *(uint64_t*)raw_data.data();receive_account++;break;
+                        case 1:
+                    Password2 = *(uint64_t*)raw_data.data();receive_account++;break;
+                        case 2:
+                    Password_rec = *(int64_t*)raw_data.data();receive_account++;break;
+                } });
+        robot_listener.registerChecker([](const head &h)
+                                       {if (h.header == 0xAA) return 0; else return 1; });
+        robot_listener.registerErrorHandle([](int id, const std::string &_)
+                                           {if (id == 1) return; });
+        return true;
+    }
+
+    bool RobotMsgProcess::SendFireCommand(double theta)
+    {
+        auto s = robot_writer.serialize(head{.id = SEND}, pose_move_send{0, 0, theta});
+        ssize_t bytes_written = ::write(fd, s.data(), s.size());
+        auto ss = robot_writer.serialize(head{.id = SEND}, shoot_msg_send{true});
+        ssize_t bytes_written = ::write(fd, ss.data(), ss.size());
+        auto sss = robot_writer.serialize(head{.id = SEND}, shoot_msg_send{false});
+        ssize_t bytes_written = ::write(fd, sss.data(), sss.size());
+        return SUCCESS;
+    }
+
+    bool RobotMsgProcess::SendMoveMsgs(double x, double y)
+    {
+        auto s = robot_writer.serialize(head{.id = SEND}, pose_move_send{x, y});
+        ssize_t bytes_written = ::write(fd, s.data(), s.size());
+        return SUCCESS;
+    }
+
+    bool RobotMsgProcess::receive_password()
+    {
+        uint8_t buffer[40];
+        int bytes_read = 0;
+
+        while (bytes_read < 40)
+        {
+            int n = ::read(fd, buffer + bytes_read, 40 - bytes_read);
+            if (n > 0)
+            {
+                bytes_read += n;
+            }
+            else if (n == -1 && errno != EAGAIN)
+            {
+                return FAIL;
+            }
+        }
+
+        robot_listener.push(reinterpret_cast<const char *>(buffer), 40);
 
         return SUCCESS;
     };
 
-    bool RobotMsgProcess::send_password(uint64_t Password1, uint64_t Password2) {
+    bool RobotMsgProcess::send_password(uint64_t Password1, uint64_t Password2)
+    {
+        auto s = robot_writer.serialize(head{.header = 0xAA,.id = SEND}, password_send{Password1, Password2});
+        ssize_t bytes_written = ::write(fd, s.data(), s.size());
+        return SUCCESS;
     };
 
 }
