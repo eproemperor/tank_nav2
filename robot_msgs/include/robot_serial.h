@@ -7,8 +7,8 @@
 息时为int64_t类型的完整密码；
 帧尾部分只有一个uint64_t类型的校验0xBB。
 */
-#ifndef ROBOT_MSGS_H
-#define ROBOT_MSGS_H
+#ifndef ROBOT_SERIAL_H
+#define ROBOT_SERIAL_H
 
 #include <iostream>
 #include <iomanip>
