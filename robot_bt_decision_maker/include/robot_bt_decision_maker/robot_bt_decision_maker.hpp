@@ -16,6 +16,7 @@
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/quaternion.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "updatemapinfo_node.h"
 
 class DecisionMakerNode : public rclcpp::Node
 {

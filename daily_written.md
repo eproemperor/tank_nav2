@@ -35,3 +35,27 @@ task:
 2️⃣Write down BT_tree methods,make sure each part's task.
 3️⃣tomorrow task:1.learn how to write a action an condition,
                 2.setup template,finished each .h
+
+##
+5.30
+  finished updatemapinfo text and successfully build it.
+  以下是将你提供的内容转换为 Markdown 表格的形式：
+###
+| 端口类型 | 端口名称 | 描述 |
+|---------|----------|------|
+| `BT::OutputPort<TypeMode>` | `star_info` | 星星信息 |
+| `BT::OutputPort<TypeMode>` | `base_info` | 基地信息 |
+| `BT::OutputPort<TypeMode>` | `enemy_base_info` | 敌方基地信息 |
+| `BT::OutputPort<TypeMode>` | `sentry_info` | 哨兵信息 |
+| `BT::OutputPort<TypeMode>` | `purple_entry_info` | 紫色入口信息 |
+| `BT::OutputPort<TypeMode>` | `green_entry_info` | 绿色入口信息 |
+| `BT::OutputPort<TypeMode>` | `purple_exit_info` | 紫色出口信息 |
+| `BT::OutputPort<TypeMode>` | `green_exit_info` | 绿色出口信息 |
+| `BT::OutputPort<TypeMode>` | `enemy_info` | 敌方单位信息 |
+| `BT::OutputPort<int>` | `enemy_num` | 敌人数量 |
+| `BT::OutputPort<double>` | `sentry_hp` | 哨兵血量 |
+| `BT::OutputPort<bool>` | `is_transfering` | 是否正在传送 |
+| `BT::OutputPort<bool>` | `is_bullet_low` | 子弹是否不足 |
+| `BT::OutputPort<nav_msgs::msg::OccupancyGrid>` | `map_data` | 地图数据 |
+| `BT::OutputPort<nav_msgs::msg::Odometry>` | `robot_pose` | 机器人位姿 |
+| `BT::OutputPort<bool>` | `map_ready` | 地图是否就绪 |
