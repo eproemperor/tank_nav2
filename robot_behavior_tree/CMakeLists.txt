@@ -23,43 +23,40 @@ find_package(tf2_ros REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav2_core REQUIRED)
+find_package(sensor_msgs REQUIRED) 
+find_package(tf2 REQUIRED)          
 
 include_directories(
   include
 )
 
 set(dependencies
-        rclcpp
-        rclcpp_action
-        rclcpp_lifecycle
-        rclcpp_components
-        std_msgs
-        geometry_msgs
-        nav2_behavior_tree
-        nav_msgs
-        nav2_msgs
-        behaviortree_cpp_v3
-        std_srvs
-        nav2_util
-        nav2_core
-        tf2_ros
-        robot_msgs  
+  rclcpp
+  rclcpp_action
+  rclcpp_lifecycle
+  rclcpp_components
+  std_msgs
+  geometry_msgs
+  nav2_behavior_tree
+  nav_msgs
+  nav2_msgs
+  behaviortree_cpp_v3
+  std_srvs
+  nav2_util
+  nav2_core
+  tf2_ros
+  robot_msgs
+  sensor_msgs  
+  tf2          
 )
 
-set(plugin_libs UpdateMapinfo)  
+set(plugin_libs "")
 
-add_library(UpdateMapinfo SHARED plugins/updatemapinfo_node.cpp)
+add_library(nav2_updatemapinfo_node_bt_node SHARED plugins/updatemapinfo_node.cpp)
+list(APPEND plugin_libs nav2_updatemapinfo_node_bt_node)
 
-ament_target_dependencies(UpdateMapinfo
-        rclcpp
-        sensor_msgs
-        nav_msgs
-        geometry_msgs
-        tf2_ros
-        tf2
-        robot_msgs
-        behaviortree_cpp_v3
-)
+add_library(nav2_ifgamestart_node_bt_node SHARED plugins/ifgamestart_node.cpp)
+list(APPEND plugin_libs nav2_ifgamestart_node_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dependencies})
