@@ -64,12 +64,12 @@ bt_navigator:
 
 robot_bt_decision_maker_node:
     ros__parameters:
-        loop_duration_in_millisec: 100
-        server_timeout_in_millisec: 1000
-        transform_tolerance: 0.15
-        bt_xml_filename: "/behavior_trees/AnswerBT.xml"  # 这个xml自定义
-        plugin_lib_names:  # 这边添加自定义的行为树节点插件
-            # - nav2_navigate_to_pose_action_bt_node
+      loop_duration_in_millisec: 100
+      server_timeout_in_millisec: 1000
+      transform_tolerance: 0.15
+      bt_xml_filename: "/behavior_trees/AnswerBT.xml"  # 这个xml自定义
+      plugin_lib_names:  # 这边添加自定义的行为树节点插件
+          # - nav2_navigate_to_pose_action_bt_node
 robot_bt_decision_maker_node_rclcpp_node:
     ros__parameters:
         goal_reached_tol: 0.1 # 允许到目标位置的最终x和y的偏差（以米为单位），不考虑角度差
@@ -104,7 +104,7 @@ controller_server:
         yaw_goal_tolerance: 6.0
         # DWB parameters
     FollowPath:
-      plugin: "" # 这里放自定义规划器的名称
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController" # 这里放自定义规划器的名称
       debug_trajectory_details: True
       desired_linear_vel: 1.0
       lookahead_dist: 1.1

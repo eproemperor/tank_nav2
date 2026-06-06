@@ -77,6 +77,13 @@ def generate_launch_description():
         arguments=['--x', '0', '--y', '0', '--z', '0', '--yaw', '0', '--pitch', '0', '--roll', '0', '--frame-id', 'map',
                    '--child-frame-id', 'odom']
     )
+    tf_odom_to_base_link_node = Node(
+    package='tf2_ros',
+    executable='static_transform_publisher',
+    arguments=['--x', '0', '--y', '0', '--z', '0', '--yaw', '0', '--pitch', '0', '--roll', '0', 
+               '--frame-id', 'odom',
+               '--child-frame-id', 'base_link']
+    )
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -93,6 +100,7 @@ def generate_launch_description():
             declare_launch_rviz,
             declare_rviz_config_dir,
             tf_node,
+            tf_odom_to_base_link_node,
             navigation_launch,
             # bt_launch,     # 行为树建议单开一个终端方便看info
             img_process_node,
