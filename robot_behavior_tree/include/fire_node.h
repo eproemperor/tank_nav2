@@ -36,7 +36,6 @@ namespace fire_node
     public:
         Fire(const std::string &action_name,
              const BT::NodeConfiguration &conf);
-        Fire() = delete; // 删除默认构造函数
         ~Fire();
 
         BT::NodeStatus tick() override;

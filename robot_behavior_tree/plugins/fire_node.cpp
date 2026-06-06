@@ -6,6 +6,10 @@ namespace fire_node
                const BT::NodeConfiguration &conf)
         : BT::SyncActionNode(action_name, conf) {}
 
+    Fire::~Fire(){
+        RobotMsgProcess_.close();
+    }
+
     double Fire::calangle(double &x1, double &y1, double &x2, double &y2)
     {
         double dx = x2 - x1;
@@ -68,6 +72,7 @@ namespace fire_node
             }
             fire(theta);
             return BT::NodeStatus::SUCCESS;
+            RobotMsgProcess_.close();
         }
         else
         {

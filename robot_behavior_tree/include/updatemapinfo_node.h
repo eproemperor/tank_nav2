@@ -91,7 +91,8 @@ namespace updatemap
                 BT::OutputPort<bool>("is_bullet_low", "子弹是否不足"),
                 BT::OutputPort<nav_msgs::msg::OccupancyGrid>("map_data", "地图数据"),
                 BT::OutputPort<nav_msgs::msg::Odometry>("robot_pose", "机器人位姿"),
-                BT::OutputPort<bool>("map_ready", "地图是否就绪")};
+                BT::OutputPort<bool>("map_ready", "地图是否就绪"),
+                BT::OutputPort<int>("sendpasmode", "密码发送模式")};
         }
 
     private:
@@ -106,6 +107,7 @@ namespace updatemap
         double sentry_hp;    // 当前哨兵血量（double型）
         bool is_transfering; // 哨兵是否在传送门位置附近
         bool is_bullet_low;  // 当前子弹是否低于一定阈值
+        int sendpasmode=0;
 
         TypeMode star;
         TypeMode base;
