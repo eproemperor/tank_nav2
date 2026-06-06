@@ -24,7 +24,7 @@ find_package(std_srvs REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(sensor_msgs REQUIRED) 
-find_package(tf2 REQUIRED)          
+find_package(tf2 REQUIRED)
 
 include_directories(
   include
@@ -50,13 +50,42 @@ set(dependencies
   tf2          
 )
 
+set(SERIAL_PRO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../serialPro)
+
+include_directories(
+  ${SERIAL_PRO_DIR}/include
+  ${SERIAL_PRO_DIR}/msg_serializer
+  ${SERIAL_PRO_DIR}/thirdparty/serialib  
+)
+
+# 收集 serialPro 的所有源文件
+set(SERIAL_PRO_SOURCES
+  ${SERIAL_PRO_DIR}/src/robot_serial.cpp
+)
+
+# 如果 serialPro 有其他源文件，可以这样添加：
+# file(GLOB SERIAL_PRO_SOURCES ${SERIAL_PRO_DIR}/src/*.cpp)
+
 set(plugin_libs "")
 
-add_library(nav2_updatemapinfo_node_bt_node SHARED plugins/updatemapinfo_node.cpp)
+# 在创建库时直接包含 serialPro 的源文件
+add_library(nav2_updatemapinfo_node_bt_node SHARED 
+  plugins/updatemapinfo_node.cpp
+  ${SERIAL_PRO_SOURCES}
+)
 list(APPEND plugin_libs nav2_updatemapinfo_node_bt_node)
 
-add_library(nav2_ifgamestart_node_bt_node SHARED plugins/ifgamestart_node.cpp)
+add_library(nav2_ifgamestart_node_bt_node SHARED 
+  plugins/ifgamestart_node.cpp
+  ${SERIAL_PRO_SOURCES}
+)
 list(APPEND plugin_libs nav2_ifgamestart_node_bt_node)
+
+add_library(nav2_fire_node_bt_node SHARED 
+  plugins/fire_node.cpp
+  ${SERIAL_PRO_SOURCES}
+)
+list(APPEND plugin_libs nav2_fire_node_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dependencies})
