@@ -43,8 +43,20 @@ private:
     rclcpp::Node::SharedPtr client_node_;
     geometry_msgs::msg::PoseStamped pose;
 
-    bool loadBehaviorTree(const std::string &bt_xml_filename, BT::Blackboard::Ptr blackboard);
+    // 自定义类型节点
+    TypeMode star;        // 星星/星标
+    TypeMode base;        // 基地
+    TypeMode enemy_base;  // 敌方基地
+    TypeMode purpleentry; // 紫色入口
+    TypeMode greenentry;  // 绿色入口
+    TypeMode sentry;      // 哨兵
+    TypeMode enemy;       // 敌方单位
+    TypeMode purpleexit;  // 紫色出口
+    TypeMode greenexit;   // 绿色出口
+    nav_msgs::msg::OccupancyGrid latest_map;
+    nav_msgs::msg::Odometry latest_odom;
 
+    bool loadBehaviorTree(const std::string &bt_xml_filename, BT::Blackboard::Ptr blackboard);
 };
 
-#endif //ROBOT_BEHAVIOR_TREE_ROBOT_BT_DECISION_MAKER_HPP
+#endif // ROBOT_BEHAVIOR_TREE_ROBOT_BT_DECISION_MAKER_HPP

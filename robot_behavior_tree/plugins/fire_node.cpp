@@ -51,10 +51,10 @@ namespace fire_node
 
     void Fire::updateposition()
     {
-        getInput<TypeMode>("sentry_info", sentry);
-        getInput<TypeMode>("enemy_base_info", enemy_base);
-        getInput<TypeMode>("enemy_info", enemy_base);
-        getInput<int>("enemy_num", enemy_num);
+        config().blackboard->get<TypeMode>("sentry_info", sentry);
+        config().blackboard->get<TypeMode>("enemy_base_info", enemy_base);
+        config().blackboard->get<TypeMode>("enemy_info", enemy);
+        config().blackboard->get<int>("enemy_num", enemy_num);
     };
 
     BT::NodeStatus Fire::tick()

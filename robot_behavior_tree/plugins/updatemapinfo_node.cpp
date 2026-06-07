@@ -8,7 +8,23 @@ namespace updatemap
         const BT::NodeConfiguration &conf)
         : BT::SyncActionNode(action_name, conf)
     {
+        //从黑板读取数据
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
+        config().blackboard->get<TypeMode>("star_info", star);
+        config().blackboard->get<TypeMode>("base_info", base);
+        config().blackboard->get<TypeMode>("enemy_base_info", enemy_base);
+        config().blackboard->get<TypeMode>("sentry_info", sentry);
+        config().blackboard->get<TypeMode>("purple_entry_info", purpleentry);
+        config().blackboard->get<TypeMode>("green_entry_info", greenentry);
+        config().blackboard->get<TypeMode>("purple_exit_info", purpleexit);
+        config().blackboard->get<TypeMode>("green_exit_info", greenexit);
+        config().blackboard->get<TypeMode>("enemy_info", enemy);
+        config().blackboard->get<int>("enemy_num", enemy_num);
+        config().blackboard->get<double>("sentry_hp", sentry_hp);
+        config().blackboard->get<bool>("is_transfering", is_transfering);
+        config().blackboard->get<bool>("is_bullet_low", is_bullet_low);
+        config().blackboard->get<nav_msgs::msg::OccupancyGrid>("map_data", latest_map);
+        config().blackboard->get<nav_msgs::msg::Odometry>("robot_pose", latest_odom);
 
         // 1.订阅地图
         rclcpp::QoS map_qos(10);
