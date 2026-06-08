@@ -55,6 +55,7 @@ namespace fire_node
         TypeMode enemy_base;
         TypeMode sentry;
         TypeMode enemy;
+        rclcpp::Node::SharedPtr node_;
         messageprocess::RobotMsgProcess RobotMsgProcess_;
     };
 }

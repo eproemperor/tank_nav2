@@ -3,13 +3,18 @@ namespace rsendpassward
 {
     RSendPassward::RSendPassward(const std::string &action_name,
                                  const BT::NodeConfiguration &conf)
-        : BT::SyncActionNode(action_name, conf) {
-
-        }
+        : BT::SyncActionNode(action_name, conf)
+    {
+        node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
+        config().blackboard->get<uint64_t>("Password1", Password1);
+        config().blackboard->get<uint64_t>("Password1", Password2);
+        config().blackboard->get<int64_t>("Password_rec", Password_rec);
+        config().blackboard->get<int>("sendpassmode", sendpasmode);
+    }
 
     BT::NodeStatus RSendPassward::tick()
     {
-        getInput<int>("sendpassmode",sendpasmode);
+        getInput<int>("sendpassmode", sendpasmode);
         switch (sendpasmode)
         {
         case 0:
@@ -32,7 +37,7 @@ namespace rsendpassward
             RobotMsgProcess_.receive_password();
             Password_rec = RobotMsgProcess_.getPassword_rec();
             setOutput("Password_rec", Password_rec);
-            
+
             setOutput("sendpassmode", RSendPassward::sendpasmode);
             break;
         case 3:

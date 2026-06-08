@@ -10,6 +10,7 @@ namespace ifgamestart
           startflag(false)
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
+        config().blackboard->get<bool>("startflag", startflag);
         rclcpp::QoS map_qos(10);
         map_qos.transient_local();
         map_sub_ = node_->create_subscription<nav_msgs::msg::OccupancyGrid>(

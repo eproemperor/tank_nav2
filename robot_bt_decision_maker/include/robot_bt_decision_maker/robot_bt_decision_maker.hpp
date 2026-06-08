@@ -55,6 +55,11 @@ private:
     TypeMode greenexit;   // 绿色出口
     nav_msgs::msg::OccupancyGrid latest_map;
     nav_msgs::msg::Odometry latest_odom;
+    uint64_t Password1;
+    uint64_t Password2;
+    int64_t Password_rec;
+    int sendpasmode;
+    bool startflag{false};
 
     bool loadBehaviorTree(const std::string &bt_xml_filename, BT::Blackboard::Ptr blackboard);
 };

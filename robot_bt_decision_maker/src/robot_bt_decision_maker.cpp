@@ -37,7 +37,7 @@ DecisionMakerNode::DecisionMakerNode(std::string name) : Node(name)
     blackboard_->set<std::chrono::milliseconds>("bt_loop_duration", bt_loop_duration_); // NOLINT
 
     // 自定义黑板变量在这边声明，注意声明类型和后续用的类型要一致，无自动类型转换
-    blackboard_->set<TypeMode>("star_info",star);
+    blackboard_->set<TypeMode>("star_info", star);
     blackboard_->set<TypeMode>("base_info", base);
     blackboard_->set<TypeMode>("enemy_base_info", enemy_base);
     blackboard_->set<TypeMode>("sentry_info", sentry);
@@ -54,7 +54,11 @@ DecisionMakerNode::DecisionMakerNode(std::string name) : Node(name)
     blackboard_->set<nav_msgs::msg::Odometry>("robot_pose", latest_odom);
     blackboard_->set<bool>("map_ready", false);
     blackboard_->set<int>("sendpasmode", 0);
-
+    blackboard_->set<uint64_t>("Password1", Password1);
+    blackboard_->set<uint64_t>("Password1", Password2);
+    blackboard_->set<int64_t>("Password_rec", Password_rec);
+    blackboard_->set<int>("sendpassmode", sendpasmode);
+    blackboard_->set<bool>("startflag", startflag);
 
     if (!loadBehaviorTree(bt_xml_filename_, blackboard_))
     {
