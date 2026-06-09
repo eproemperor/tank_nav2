@@ -29,12 +29,26 @@ namespace gobase
     };
 
     struct TypeMode
+{
+    TargetType name;
+    bool is_exist = YES;
+    bool is_out_of_center;
+    double p_x;
+    double p_y;
+    double p_z = 0.0;
+};
+
+    enum TargetMode : int
     {
-        TargetType name;
-        bool is_exist = true;
-        double p_x;
-        double p_y;
-        double p_z = 0.0;
+        STAR = 0,        // 星星/星标
+        BASE = 1,        // 基地
+        ENEMY_BASE = 2,  // 敌方基地
+        PURPLEENTRY = 3, // 紫色入口
+        GREENENTRY = 4,  // 绿色入口
+        SENTRY = 5,      // 哨兵
+        ENEMY = 6,       // 敌方单位
+        PURPLEEXIT = 7,  // 紫色出口
+        GREENEXIT = 8,   // 绿色出口
     };
 
     class Gobase : public BT::SyncActionNode
@@ -55,6 +69,14 @@ namespace gobase
         TypeMode purpleexit;
         TypeMode greenexit;
         rclcpp::Node::SharedPtr node_;
+        int sendpasmode;
+        int enemy_num;
+        double sentry_hp;
+        bool is_bullet_low;
+        double goal_x;
+        double goal_y;
+
+        int settargetmode();
     };
 }
 

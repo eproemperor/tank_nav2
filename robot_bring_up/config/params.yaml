@@ -104,7 +104,7 @@ controller_server:
         yaw_goal_tolerance: 6.0
         # DWB parameters
     FollowPath:
-      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController" # 这里放自定义规划器的名称
+      plugin: "nav2_pure_pursuit_controller::PurePursuitController" # 这里放自定义规划器的名称
       debug_trajectory_details: True
       desired_linear_vel: 1.0
       lookahead_dist: 1.1

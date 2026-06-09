@@ -42,6 +42,7 @@ namespace rsendpassward
             break;
         case 3:
             RobotMsgProcess_.send_password(Password_rec);
+            sendpasmode++;
             break;
         default:
             break;

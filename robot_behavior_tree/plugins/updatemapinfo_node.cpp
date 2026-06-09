@@ -8,7 +8,7 @@ namespace updatemap
         const BT::NodeConfiguration &conf)
         : BT::SyncActionNode(action_name, conf)
     {
-        //从黑板读取数据
+        // 从黑板读取数据
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
         config().blackboard->get<TypeMode>("star_info", star);
         config().blackboard->get<TypeMode>("base_info", base);
@@ -25,6 +25,7 @@ namespace updatemap
         config().blackboard->get<bool>("is_bullet_low", is_bullet_low);
         config().blackboard->get<nav_msgs::msg::OccupancyGrid>("map_data", latest_map);
         config().blackboard->get<nav_msgs::msg::Odometry>("robot_pose", latest_odom);
+        config().blackboard->get<bool>("is_out_of_center", is_out_of_center);
 
         // 1.订阅地图
         rclcpp::QoS map_qos(10);
@@ -69,36 +70,36 @@ namespace updatemap
         RCLCPP_INFO(node_->get_logger(), "Map initialization complete");
     }
 
-    void UpdateMapinfo::updatemsg(TargetType type, double x, double y, bool is_exist)
+    void UpdateMapinfo::updatemsg(TargetType type, double x, double y, bool is_exist, bool is_out_of_center)
     {
         switch (type)
         {
         case TargetType::STAR:
-            star = {type, is_exist, x, y};
+            star = {type, is_exist, is_out_of_center, x, y};
             break;
         case TargetType::BASE:
-            base = {type, is_exist, x, y};
+            base = {type, is_exist, is_out_of_center, x, y};
             break;
         case TargetType::ENEMY_BASE:
-            enemy_base = {type, is_exist, x, y};
+            enemy_base = {type, is_exist, is_out_of_center, x, y};
             break;
         case TargetType::PURPLEENTRY:
-            purpleentry = {type, is_exist, x, y};
+            purpleentry = {type, is_exist, is_out_of_center, x, y};
             break;
         case TargetType::GREENENTRY:
-            greenentry = {type, is_exist, x, y};
+            greenentry = {type, is_exist, is_out_of_center, x, y};
             break;
         case TargetType::SENTRY:
-            sentry = {type, is_exist, x, y};
+            sentry = {type, is_exist, is_out_of_center, x, y};
             break;
         case TargetType::ENEMY:
-            enemy = {type, is_exist, x, y};
+            enemy = {type, is_exist, is_out_of_center, x, y};
             break;
         case TargetType::PURPLEEXIT:
-            purpleexit = {type, is_exist, x, y};
+            purpleexit = {type, is_exist, is_out_of_center, x, y};
             break;
         case TargetType::GREENEXIT:
-            greenexit = {type, is_exist, x, y};
+            greenexit = {type, is_exist, is_out_of_center, x, y};
             break;
         }
     }
@@ -141,7 +142,8 @@ namespace updatemap
             updatemsg(index_to_type[i],
                       msg->map_info[i].pos.x,
                       msg->map_info[i].pos.y,
-                      msg->map_info[i].is_exist);
+                      msg->map_info[i].is_exist,
+                      msg->map_info[i].is_out_of_center);
         }
 
         enemy_num = msg->enemy_num;
@@ -187,6 +189,7 @@ namespace updatemap
         setOutput("map_data", latest_map);
         setOutput("robot_pose", latest_odom);
         setOutput("map_ready", true);
+        setOutput("is_out_of_center", is_out_of_center);
 
         return BT::NodeStatus::SUCCESS;
     }

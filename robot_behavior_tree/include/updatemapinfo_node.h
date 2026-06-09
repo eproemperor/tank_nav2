@@ -51,6 +51,7 @@ struct TypeMode
 {
     TargetType name;
     bool is_exist = YES;
+    bool is_out_of_center;
     double p_x;
     double p_y;
     double p_z = 0.0;
@@ -108,6 +109,7 @@ namespace updatemap
         bool is_transfering; // 哨兵是否在传送门位置附近
         bool is_bullet_low;  // 当前子弹是否低于一定阈值
         int sendpasmode=0;
+        bool is_out_of_center;
 
         TypeMode star;
         TypeMode base;
@@ -120,7 +122,7 @@ namespace updatemap
         TypeMode greenexit;
 
         void InitMap();
-        void updatemsg(TargetType type, double x, double y, bool is_exist);
+        void updatemsg(TargetType type, double x, double y, bool is_exist,bool is_out_of_center);
 
         // 回调函数声明
         void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);

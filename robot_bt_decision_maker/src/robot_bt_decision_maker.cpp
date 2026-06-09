@@ -59,6 +59,7 @@ DecisionMakerNode::DecisionMakerNode(std::string name) : Node(name)
     blackboard_->set<int64_t>("Password_rec", Password_rec);
     blackboard_->set<int>("sendpassmode", sendpasmode);
     blackboard_->set<bool>("startflag", startflag);
+    blackboard_->set<bool>("is_out_of_center",is_out_of_center);
 
     if (!loadBehaviorTree(bt_xml_filename_, blackboard_))
     {
