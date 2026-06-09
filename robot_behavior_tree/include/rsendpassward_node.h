@@ -1,5 +1,5 @@
-#ifndef GOBASE_NODE.H
-#define GOBASE_NODE .H
+#ifndef GOBASE_NODE_H
+#define GOBASE_NODE_H
 
 #include <mutex>
 #include <rclcpp/rclcpp.hpp>
@@ -8,10 +8,11 @@
 #include "behaviortree_cpp_v3/bt_factory.h"
 #include "robot_serial.h"
 
-namespace rsendpassward
+namespace nav2_behavior_tree
 {
     class RSendPassward : public BT::SyncActionNode
     {
+    public:
         RSendPassward(const std::string &action_name,
                       const BT::NodeConfiguration &conf);
 

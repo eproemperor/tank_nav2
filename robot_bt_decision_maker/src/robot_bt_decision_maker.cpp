@@ -115,7 +115,6 @@ bool DecisionMakerNode::loadBehaviorTree(const std::string &bt_xml_filename, BT:
     {
         tree_ = bt_->createTreeFromFile(bt_xml_filename, blackboard);
         BT::BehaviorTreeFactory factory;
-        factory.registerNodeType<updatemap::UpdateMapinfo>("UpdateMapinfo");
         for (auto &blackboard : tree_.blackboard_stack)
         {
             blackboard->set<rclcpp::Node::SharedPtr>("node", client_node_);                    // NOLINT

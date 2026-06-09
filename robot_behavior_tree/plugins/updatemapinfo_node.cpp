@@ -1,6 +1,6 @@
 #include "updatemapinfo_node.h"
 
-namespace updatemap
+namespace nav2_behavior_tree
 {
 
     UpdateMapinfo::UpdateMapinfo(
@@ -194,4 +194,8 @@ namespace updatemap
         return BT::NodeStatus::SUCCESS;
     }
 
+}
+BT_REGISTER_NODES(factory)
+{
+    factory.registerNodeType<nav2_behavior_tree::UpdateMapinfo>("UpdateMapinfo");
 }

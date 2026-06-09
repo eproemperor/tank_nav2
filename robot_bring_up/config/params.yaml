@@ -69,6 +69,7 @@ robot_bt_decision_maker_node:
       transform_tolerance: 0.15
       bt_xml_filename: "/behavior_trees/AnswerBT.xml"  # 这个xml自定义
       plugin_lib_names:  # 这边添加自定义的行为树节点插件
+        nav2_navigate_through_poses_action_bt_node
           # - nav2_navigate_to_pose_action_bt_node
 robot_bt_decision_maker_node_rclcpp_node:
     ros__parameters:

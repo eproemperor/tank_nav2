@@ -1,6 +1,6 @@
 #include "navvelremap_node.h"
 
-namespace navvelremap
+namespace nav2_behavior_tree
 {
     Navvelremap::Navvelremap(
         const std::string &condition_name,
@@ -20,4 +20,9 @@ namespace navvelremap
     {
         setOutput<double>("navvel", newnavvel);
     }
+
+    BT_REGISTER_NODES(factory)
+{
+    factory.registerNodeType<nav2_behavior_tree::Navvelremap>("Navvelremap");
+}
 }

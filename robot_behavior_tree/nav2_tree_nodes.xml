@@ -4,6 +4,8 @@
         <Condition ID="IfGameStart"/>
         <Action ID="NavVelRemap"/>
         <Action ID="UpdateMapinfo"/>
+        <Action ID="RSendPassward"/>
+        <Action ID="Fire"/>
     </TreeNodesModel>
 </root>
 

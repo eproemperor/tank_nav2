@@ -6,7 +6,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "behaviortree_cpp_v3/bt_factory.h"
 
-namespace navvelremap
+namespace nav2_behavior_tree
 {
     class Navvelremap : public BT::ConditionNode
     {

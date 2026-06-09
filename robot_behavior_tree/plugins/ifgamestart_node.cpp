@@ -1,6 +1,6 @@
 #include "ifgamestart_node.h"
 
-namespace ifgamestart
+namespace nav2_behavior_tree
 {
 
     IfGameStart::IfGameStart(
@@ -40,4 +40,9 @@ namespace ifgamestart
         (void)msg;
         startflag = true;
     }
+
+    BT_REGISTER_NODES(factory)
+{
+    factory.registerNodeType<nav2_behavior_tree::IfGameStart>("IfGameStart");
+}
 }

@@ -1,6 +1,6 @@
 #include "gobase_node.h"
 
-namespace gobase
+namespace nav2_behavior_tree
 {
     Gobase::Gobase(const std::string &action_name,
                    const BT::NodeConfiguration &conf)
@@ -22,37 +22,37 @@ namespace gobase
         config().blackboard->get<bool>("is_bullet_low", is_bullet_low);
     };
 
-    int Gobase::settargetmode()
+    int Gobase::setTargetType()
     {
         if (is_bullet_low || sentry_hp <= 80.0)
         {
-            return TargetMode::BASE;
+            return TargetType::BASE;
         }
         else if (!(enemy_num == 0))
         {
-            return TargetMode::ENEMY;
+            return TargetType::ENEMY;
         }
         else if (sendpasmode == 3 && sentry.is_out_of_center)
         {
-            return TargetMode::GREENENTRY;
+            return TargetType::GREENENTRY;
         }
         else if (sendpasmode == 3 && (!sentry.is_out_of_center))
         {
-            return TargetMode::STAR;
+            return TargetType::STAR;
         }
         else if (sendpasmode == 4 && (!sentry.is_out_of_center))
         {
-            return TargetMode::GREENEXIT;
+            return TargetType::GREENEXIT;
         }
         else if (sendpasmode == 4 && sentry.is_out_of_center)
         {
-            return TargetMode::ENEMY_BASE;
+            return TargetType::ENEMY_BASE;
         }
     }
 
     BT::NodeStatus Gobase::tick()
     {
-        auto type = settargetmode();
+        auto type = setTargetType();
         switch (type)
         {
         case TargetType::STAR:
@@ -85,4 +85,9 @@ namespace gobase
         return BT::NodeStatus::SUCCESS;
     };
 
+}
+
+BT_REGISTER_NODES(factory)
+{
+    factory.registerNodeType<nav2_behavior_tree::Gobase>("GoBase");
 }

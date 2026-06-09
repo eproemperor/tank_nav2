@@ -57,7 +57,7 @@ struct TypeMode
     double p_z = 0.0;
 };
 
-namespace updatemap
+namespace nav2_behavior_tree
 {
 
     /* 初始化：哨兵出生点，敌方步兵出生点，补给区，中央蓝色区域，传送点，基地，迷宫

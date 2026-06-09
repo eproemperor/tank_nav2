@@ -1,6 +1,6 @@
 #include "fire_node.h"
 
-namespace fire_node
+namespace nav2_behavior_tree
 {
     Fire::Fire(const std::string &action_name,
                const BT::NodeConfiguration &conf)
@@ -83,5 +83,8 @@ namespace fire_node
             return BT::NodeStatus::FAILURE;
         }
     };
-
+BT_REGISTER_NODES(factory)
+{
+    factory.registerNodeType<nav2_behavior_tree::Fire>("Fire");
+}
 }

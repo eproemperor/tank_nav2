@@ -6,7 +6,7 @@
 #include "behaviortree_cpp_v3/bt_factory.h"
 
 #define YES 1
-namespace fire_node
+namespace nav2_behavior_tree
 {
     enum TargetType : uint8_t
     {

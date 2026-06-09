@@ -10,7 +10,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "behaviortree_cpp_v3/bt_factory.h"
 
-namespace ifgamestart
+namespace nav2_behavior_tree
 {
     class IfGameStart : public BT::ConditionNode
     {

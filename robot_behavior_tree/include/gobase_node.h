@@ -13,7 +13,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "behaviortree_cpp_v3/bt_factory.h"
 
-namespace gobase
+namespace nav2_behavior_tree
 {
     enum TargetType : uint8_t
     {
@@ -29,26 +29,13 @@ namespace gobase
     };
 
     struct TypeMode
-{
-    TargetType name;
-    bool is_exist = YES;
-    bool is_out_of_center;
-    double p_x;
-    double p_y;
-    double p_z = 0.0;
-};
-
-    enum TargetMode : int
     {
-        STAR = 0,        // 星星/星标
-        BASE = 1,        // 基地
-        ENEMY_BASE = 2,  // 敌方基地
-        PURPLEENTRY = 3, // 紫色入口
-        GREENENTRY = 4,  // 绿色入口
-        SENTRY = 5,      // 哨兵
-        ENEMY = 6,       // 敌方单位
-        PURPLEEXIT = 7,  // 紫色出口
-        GREENEXIT = 8,   // 绿色出口
+        TargetType name;
+        bool is_exist = true;
+        bool is_out_of_center;
+        double p_x;
+        double p_y;
+        double p_z = 0.0;
     };
 
     class Gobase : public BT::SyncActionNode
@@ -57,6 +44,13 @@ namespace gobase
         Gobase(const std::string &action_name,
                const BT::NodeConfiguration &conf);
         BT::NodeStatus tick() override;
+
+        static BT::PortsList providedPorts()
+        {
+            return {
+                BT::OutputPort<double>("goal_x", "·目标点x坐标"),
+                BT::OutputPort<double>("goal_y", "目标点y坐标")};
+        }
 
     private:
         TypeMode star;
@@ -76,7 +70,7 @@ namespace gobase
         double goal_x;
         double goal_y;
 
-        int settargetmode();
+        int setTargetType();
     };
 }
 

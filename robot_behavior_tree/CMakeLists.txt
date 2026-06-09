@@ -87,6 +87,24 @@ add_library(nav2_fire_node_bt_node SHARED
 )
 list(APPEND plugin_libs nav2_fire_node_bt_node)
 
+add_library(nav2_rsendpassward_node_bt_node SHARED 
+  plugins/rsendpassward_node.cpp
+  ${SERIAL_PRO_SOURCES}
+)
+list(APPEND plugin_libs nav2_rsendpassward_node_bt_node)
+
+add_library(nav2_navvelremap_node_bt_node SHARED 
+  plugins/navvelremap_node.cpp
+  ${SERIAL_PRO_SOURCES}
+)
+list(APPEND plugin_libs nav2_navvelremap_node_bt_node)
+
+add_library(nav2_gobase_node_bt_node SHARED 
+  plugins/gobase_node.cpp
+  ${SERIAL_PRO_SOURCES}
+)
+list(APPEND plugin_libs nav2_gobase_node_bt_node)
+
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dependencies})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
