@@ -61,6 +61,7 @@ private:
     int sendpasmode;
     bool startflag{false};
     bool is_out_of_center;
+    double navvelre;
 
     bool loadBehaviorTree(const std::string &bt_xml_filename, BT::Blackboard::Ptr blackboard);
 };

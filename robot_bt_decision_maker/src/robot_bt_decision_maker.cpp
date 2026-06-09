@@ -60,6 +60,7 @@ DecisionMakerNode::DecisionMakerNode(std::string name) : Node(name)
     blackboard_->set<int>("sendpassmode", sendpasmode);
     blackboard_->set<bool>("startflag", startflag);
     blackboard_->set<bool>("is_out_of_center",is_out_of_center);
+    blackboard_->set<double>("navvelre",navvelre);
 
     if (!loadBehaviorTree(bt_xml_filename_, blackboard_))
     {
