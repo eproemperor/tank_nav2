@@ -48,8 +48,8 @@ namespace nav2_behavior_tree
             break;
         }
     }
-BT_REGISTER_NODES(factory)
-{
-    factory.registerNodeType<nav2_behavior_tree::RSendPassward>("RSendPassward");
-}
+    BT_REGISTER_NODES(factory)
+    {
+        factory.registerNodeType<nav2_behavior_tree::RSendPassward>("RSendPassward");
+    }
 }

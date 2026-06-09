@@ -48,7 +48,7 @@ namespace nav2_behavior_tree
 
     private:
         void fire(double theta);
-        void updateposition();     //更新数据
+        void updateposition(); // 更新数据
         double calangle(double &x1, double &y1, double &x2, double &y2);
         int enemy_num;
         double theta;

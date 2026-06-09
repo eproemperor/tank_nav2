@@ -22,7 +22,7 @@ namespace nav2_behavior_tree
     }
 
     BT_REGISTER_NODES(factory)
-{
-    factory.registerNodeType<nav2_behavior_tree::Navvelremap>("Navvelremap");
-}
+    {
+        factory.registerNodeType<nav2_behavior_tree::Navvelremap>("Navvelremap");
+    }
 }

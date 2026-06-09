@@ -59,8 +59,8 @@ DecisionMakerNode::DecisionMakerNode(std::string name) : Node(name)
     blackboard_->set<int64_t>("Password_rec", Password_rec);
     blackboard_->set<int>("sendpassmode", sendpasmode);
     blackboard_->set<bool>("startflag", startflag);
-    blackboard_->set<bool>("is_out_of_center",is_out_of_center);
-    blackboard_->set<double>("navvelre",navvelre);
+    blackboard_->set<bool>("is_out_of_center", is_out_of_center);
+    blackboard_->set<double>("navvelre", navvelre);
 
     if (!loadBehaviorTree(bt_xml_filename_, blackboard_))
     {
@@ -122,6 +122,30 @@ bool DecisionMakerNode::loadBehaviorTree(const std::string &bt_xml_filename, BT:
             blackboard->set<std::chrono::milliseconds>("bt_loop_duration", bt_loop_duration_); // NOLINT
 
             // 自定义黑板变量在这边要再放一遍
+            blackboard_->set<TypeMode>("star_info", star);
+            blackboard_->set<TypeMode>("base_info", base);
+            blackboard_->set<TypeMode>("enemy_base_info", enemy_base);
+            blackboard_->set<TypeMode>("sentry_info", sentry);
+            blackboard_->set<TypeMode>("purple_entry_info", purpleentry);
+            blackboard_->set<TypeMode>("green_entry_info", greenentry);
+            blackboard_->set<TypeMode>("purple_exit_info", purpleexit);
+            blackboard_->set<TypeMode>("green_exit_info", greenexit);
+            blackboard_->set<TypeMode>("enemy_info", enemy);
+            blackboard_->set<int>("enemy_num", 2);
+            blackboard_->set<double>("sentry_hp", 100);
+            blackboard_->set<bool>("is_transfering", false);
+            blackboard_->set<bool>("is_bullet_low", false);
+            blackboard_->set<nav_msgs::msg::OccupancyGrid>("map_data", latest_map);
+            blackboard_->set<nav_msgs::msg::Odometry>("robot_pose", latest_odom);
+            blackboard_->set<bool>("map_ready", false);
+            blackboard_->set<int>("sendpasmode", 0);
+            blackboard_->set<uint64_t>("Password1", Password1);
+            blackboard_->set<uint64_t>("Password1", Password2);
+            blackboard_->set<int64_t>("Password_rec", Password_rec);
+            blackboard_->set<int>("sendpassmode", sendpasmode);
+            blackboard_->set<bool>("startflag", startflag);
+            blackboard_->set<bool>("is_out_of_center", is_out_of_center);
+            blackboard_->set<double>("navvelre", navvelre);
         }
     }
     catch (const std::exception &e)

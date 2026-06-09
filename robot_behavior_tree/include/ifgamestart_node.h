@@ -21,7 +21,6 @@ namespace nav2_behavior_tree
         IfGameStart() = delete;
         BT::NodeStatus tick() override;
 
-
         static BT::PortsList providedPorts()
         {
             return {BT::OutputPort<bool>("startflag", "游戏开始标志")};

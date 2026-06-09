@@ -42,7 +42,7 @@ namespace nav2_behavior_tree
     }
 
     BT_REGISTER_NODES(factory)
-{
-    factory.registerNodeType<nav2_behavior_tree::IfGameStart>("IfGameStart");
-}
+    {
+        factory.registerNodeType<nav2_behavior_tree::IfGameStart>("IfGameStart");
+    }
 }

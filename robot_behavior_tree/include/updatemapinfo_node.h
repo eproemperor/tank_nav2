@@ -108,7 +108,7 @@ namespace nav2_behavior_tree
         double sentry_hp;    // 当前哨兵血量（double型）
         bool is_transfering; // 哨兵是否在传送门位置附近
         bool is_bullet_low;  // 当前子弹是否低于一定阈值
-        int sendpasmode=0;
+        int sendpasmode = 0;
         bool is_out_of_center;
 
         TypeMode star;
@@ -122,7 +122,7 @@ namespace nav2_behavior_tree
         TypeMode greenexit;
 
         void InitMap();
-        void updatemsg(TargetType type, double x, double y, bool is_exist,bool is_out_of_center);
+        void updatemsg(TargetType type, double x, double y, bool is_exist, bool is_out_of_center);
 
         // 回调函数声明
         void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);

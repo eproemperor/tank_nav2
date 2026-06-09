@@ -83,8 +83,8 @@ namespace nav2_behavior_tree
             return BT::NodeStatus::FAILURE;
         }
     };
-BT_REGISTER_NODES(factory)
-{
-    factory.registerNodeType<nav2_behavior_tree::Fire>("Fire");
-}
+    BT_REGISTER_NODES(factory)
+    {
+        factory.registerNodeType<nav2_behavior_tree::Fire>("Fire");
+    }
 }
