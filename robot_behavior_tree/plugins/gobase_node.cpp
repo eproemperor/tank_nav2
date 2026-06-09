@@ -7,20 +7,72 @@ namespace nav2_behavior_tree
         : BT::SyncActionNode(action_name, conf)
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
-        config().blackboard->get<TypeMode>("star_info", star);
-        config().blackboard->get<TypeMode>("base_info", base);
-        config().blackboard->get<TypeMode>("enemy_base_info", enemy_base);
-        config().blackboard->get<TypeMode>("sentry_info", sentry);
-        config().blackboard->get<TypeMode>("purple_entry_info", purpleentry);
-        config().blackboard->get<TypeMode>("purple_exit_info", purpleexit);
-        config().blackboard->get<TypeMode>("green_entry_info", greenentry);
-        config().blackboard->get<TypeMode>("green_exit_info", greenexit);
-        config().blackboard->get<TypeMode>("enemy_info", enemy);
+        updateBlackboardData();
+    };
+
+    void Gobase::updateBlackboardData()
+    {
+        // 星星信息
+        config().blackboard->get<int>("star_name", star_name);
+        config().blackboard->get<bool>("star_is_exist", star_is_exist);
+        config().blackboard->get<double>("star_x", star_x);
+        config().blackboard->get<double>("star_y", star_y);
+        
+        // 基地信息
+        config().blackboard->get<int>("base_name", base_name);
+        config().blackboard->get<bool>("base_is_exist", base_is_exist);
+        config().blackboard->get<double>("base_x", base_x);
+        config().blackboard->get<double>("base_y", base_y);
+        
+        // 敌方基地信息
+        config().blackboard->get<int>("enemy_base_name", enemy_base_name);
+        config().blackboard->get<bool>("enemy_base_is_exist", enemy_base_is_exist);
+        config().blackboard->get<double>("enemy_base_x", enemy_base_x);
+        config().blackboard->get<double>("enemy_base_y", enemy_base_y);
+        
+        // 哨兵信息
+        config().blackboard->get<int>("sentry_name", sentry_name);
+        config().blackboard->get<bool>("sentry_is_exist", sentry_is_exist);
+        config().blackboard->get<bool>("sentry_is_out_of_center", sentry_is_out_of_center);
+        config().blackboard->get<double>("sentry_x", sentry_x);
+        config().blackboard->get<double>("sentry_y", sentry_y);
+        
+        // 紫色入口信息
+        config().blackboard->get<int>("purple_entry_name", purpleentry_name);
+        config().blackboard->get<bool>("purple_entry_is_exist", purpleentry_is_exist);
+        config().blackboard->get<double>("purple_entry_x", purpleentry_x);
+        config().blackboard->get<double>("purple_entry_y", purpleentry_y);
+        
+        // 紫色出口信息
+        config().blackboard->get<int>("purple_exit_name", purpleexit_name);
+        config().blackboard->get<bool>("purple_exit_is_exist", purpleexit_is_exist);
+        config().blackboard->get<double>("purple_exit_x", purpleexit_x);
+        config().blackboard->get<double>("purple_exit_y", purpleexit_y);
+        
+        // 绿色入口信息
+        config().blackboard->get<int>("green_entry_name", greenentry_name);
+        config().blackboard->get<bool>("green_entry_is_exist", greenentry_is_exist);
+        config().blackboard->get<double>("green_entry_x", greenentry_x);
+        config().blackboard->get<double>("green_entry_y", greenentry_y);
+        
+        // 绿色出口信息
+        config().blackboard->get<int>("green_exit_name", greenexit_name);
+        config().blackboard->get<bool>("green_exit_is_exist", greenexit_is_exist);
+        config().blackboard->get<double>("green_exit_x", greenexit_x);
+        config().blackboard->get<double>("green_exit_y", greenexit_y);
+        
+        // 敌方单位信息
+        config().blackboard->get<int>("enemy_name", enemy_name);
+        config().blackboard->get<bool>("enemy_is_exist", enemy_is_exist);
+        config().blackboard->get<double>("enemy_x", enemy_x);
+        config().blackboard->get<double>("enemy_y", enemy_y);
+        
+        // 其他数据
         config().blackboard->get<int>("enemy_num", enemy_num);
         config().blackboard->get<double>("sentry_hp", sentry_hp);
-        config().blackboard->get<int>("sendpassmode", sendpasmode);
+        config().blackboard->get<int>("sendpasmode", sendpasmode);
         config().blackboard->get<bool>("is_bullet_low", is_bullet_low);
-    };
+    }
 
     int Gobase::setTargetType()
     {
@@ -28,60 +80,72 @@ namespace nav2_behavior_tree
         {
             return TargetType::BASE;
         }
-        else if (!(enemy_num == 0))
+        else if (enemy_num != 0 && enemy_is_exist)
         {
             return TargetType::ENEMY;
         }
-        else if (sendpasmode == 3 && sentry.is_out_of_center)
+        else if (sendpasmode == 3 && sentry_is_exist && sentry_is_out_of_center)
         {
             return TargetType::GREENENTRY;
         }
-        else if (sendpasmode == 3 && (!sentry.is_out_of_center))
+        else if (sendpasmode == 3 && sentry_is_exist && !sentry_is_out_of_center)
         {
             return TargetType::STAR;
         }
-        else if (sendpasmode == 4 && (!sentry.is_out_of_center))
+        else if (sendpasmode == 4 && sentry_is_exist && !sentry_is_out_of_center)
         {
             return TargetType::GREENEXIT;
         }
-        else if (sendpasmode == 4 && sentry.is_out_of_center)
+        else if (sendpasmode == 4 && sentry_is_exist && sentry_is_out_of_center)
         {
             return TargetType::ENEMY_BASE;
         }
+        return TargetType::BASE;
     }
 
     BT::NodeStatus Gobase::tick()
     {
+        // 更新黑板数据
+        updateBlackboardData();
+        
         auto type = setTargetType();
         switch (type)
         {
         case TargetType::STAR:
-            goal_x = star.p_x;
-            goal_y = star.p_y;
+            goal_x = star_x;
+            goal_y = star_y;
             break;
         case TargetType::BASE:
-            goal_x = base.p_x;
-            goal_y = base.p_y;
+            goal_x = base_x;
+            goal_y = base_y;
             break;
         case TargetType::ENEMY_BASE:
-            goal_x = enemy_base.p_x;
-            goal_y = enemy_base.p_y;
+            goal_x = enemy_base_x;
+            goal_y = enemy_base_y;
             break;
         case TargetType::GREENENTRY:
-            goal_x = greenentry.p_x;
-            goal_y = greenentry.p_y;
+            goal_x = greenentry_x;
+            goal_y = greenentry_y;
             break;
         case TargetType::ENEMY:
-            goal_x = enemy.p_x;
-            goal_y = enemy.p_y;
+            goal_x = enemy_x;
+            goal_y = enemy_y;
             break;
         case TargetType::GREENEXIT:
-            goal_x = greenexit.p_x;
-            goal_y = greenexit.p_y;
+            goal_x = greenexit_x;
+            goal_y = greenexit_y;
+            break;
+        default:
+            goal_x = base_x;
+            goal_y = base_y;
             break;
         }
-        setOutput("goal_x",goal_x);
-        setOutput("goal_y",goal_y);
+        
+        setOutput("goal_x", goal_x);
+        setOutput("goal_y", goal_y);
+        
+        RCLCPP_INFO(node_->get_logger(), "GoBase: target type=%d, goal=(%.2f, %.2f)", type, goal_x, goal_y);
+        
         return BT::NodeStatus::SUCCESS;
     };
 

@@ -7,8 +7,8 @@ bt_navigator:
     default_server_timeout: 20
     wait_for_service_timeout: 1000
     # 这两个default的路径需要改成你们电脑中的文件路径
-    default_nav_through_poses_bt_xml: "/home/epro/homework2025_nav2/tank_nav2/robot_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml"
-    default_nav_to_pose_bt_xml: "/home/epro/homework2025_nav2/tank_nav2/robot_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml"
+    default_nav_through_poses_bt_xml: "/home/epro/homework2025_nav2/nav_2_homwork/tank_nav2/install/robot_bt_navigator/share/robot_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml"
+    default_nav_to_pose_bt_xml: "/home/epro/homework2025_nav2/nav_2_homwork/tank_nav2/install/robot_bt_navigator/share/robot_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml"
     # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
     # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
     # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
@@ -68,8 +68,15 @@ robot_bt_decision_maker_node:
       server_timeout_in_millisec: 1000
       transform_tolerance: 0.15
       bt_xml_filename: "/behavior_trees/AnswerBT.xml"  # 这个xml自定义
-      plugin_lib_names:  # 这边添加自定义的行为树节点插件
-        nav2_navigate_through_poses_action_bt_node
+      plugin_lib_names: [
+        "nav2_navigate_through_poses_action_bt_node",
+        "nav2_updatemapinfo_node_bt_node",
+        "nav2_ifgamestart_node_bt_node",
+        "nav2_fire_node_bt_node",
+        "nav2_rsendpassward_node_bt_node",
+        "nav2_navvelremap_node_bt_node",
+        "nav2_gobase_node_bt_node"
+      ]
           # - nav2_navigate_to_pose_action_bt_node
 robot_bt_decision_maker_node_rclcpp_node:
     ros__parameters:

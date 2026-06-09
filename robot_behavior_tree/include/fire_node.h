@@ -21,15 +21,6 @@ namespace nav2_behavior_tree
         GREENEXIT = 8,   // 绿色出口
     };
 
-    struct TypeMode
-    {
-        TargetType name;
-        bool is_exist = YES;
-        double p_x;
-        double p_y;
-        double p_z = 0.0;
-    };
-
     class Fire : public BT::SyncActionNode
     {
 
@@ -43,18 +34,51 @@ namespace nav2_behavior_tree
         static BT::PortsList providedPorts()
         {
             return {
-                BT::OutputPort<bool>("is_bullet_low", "子弹是否不足")};
+                BT::InputPort<bool>("is_bullet_low", "子弹是否不足"),
+                // 敌方基地信息
+                BT::InputPort<int>("enemy_base_name", "敌方基地类型"),
+                BT::InputPort<bool>("enemy_base_is_exist", "敌方基地是否存在"),
+                BT::InputPort<double>("enemy_base_x", "敌方基地X坐标"),
+                BT::InputPort<double>("enemy_base_y", "敌方基地Y坐标"),
+                // 哨兵信息
+                BT::InputPort<int>("sentry_name", "哨兵类型"),
+                BT::InputPort<bool>("sentry_is_exist", "哨兵是否存在"),
+                BT::InputPort<double>("sentry_x", "哨兵X坐标"),
+                BT::InputPort<double>("sentry_y", "哨兵Y坐标"),
+                // 敌方单位信息
+                BT::InputPort<int>("enemy_name", "敌方类型"),
+                BT::InputPort<bool>("enemy_is_exist", "敌方是否存在"),
+                BT::InputPort<double>("enemy_x", "敌方X坐标"),
+                BT::InputPort<double>("enemy_y", "敌方Y坐标"),
+                BT::InputPort<int>("enemy_num", "敌人数量")};
         }
 
     private:
         void fire(double theta);
         void updateposition(); // 更新数据
         double calangle(double &x1, double &y1, double &x2, double &y2);
+        
         int enemy_num;
         double theta;
-        TypeMode enemy_base;
-        TypeMode sentry;
-        TypeMode enemy;
+        
+        // 敌方基地信息（拆分为基本类型）
+        int enemy_base_name;
+        bool enemy_base_is_exist;
+        double enemy_base_x;
+        double enemy_base_y;
+        
+        // 哨兵信息（拆分为基本类型）
+        int sentry_name;
+        bool sentry_is_exist;
+        double sentry_x;
+        double sentry_y;
+        
+        // 敌方单位信息（拆分为基本类型）
+        int enemy_name;
+        bool enemy_is_exist;
+        double enemy_x;
+        double enemy_y;
+        
         rclcpp::Node::SharedPtr node_;
         messageprocess::RobotMsgProcess RobotMsgProcess_;
     };

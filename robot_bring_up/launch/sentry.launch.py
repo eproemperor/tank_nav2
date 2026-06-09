@@ -102,7 +102,7 @@ def generate_launch_description():
             tf_node,
             tf_odom_to_base_link_node,
             navigation_launch,
-            # bt_launch,     # 行为树建议单开一个终端方便看info
+            bt_launch,     # 行为树建议单开一个终端方便看info
             img_process_node,
             rviz_node
             ]

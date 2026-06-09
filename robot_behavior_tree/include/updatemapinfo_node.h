@@ -33,6 +33,7 @@ bool is_bullet_low
 #define FIAl 0
 #define MYSUCCESS 1
 #define YES 1
+#define YELLOW "\033[33m"
 
 enum TargetType : uint8_t
 {
@@ -77,15 +78,69 @@ namespace nav2_behavior_tree
         static BT::PortsList providedPorts()
         {
             return {
-                BT::OutputPort<TypeMode>("star_info", "星星信息"),
-                BT::OutputPort<TypeMode>("base_info", "基地信息"),
-                BT::OutputPort<TypeMode>("enemy_base_info", "敌方基地信息"),
-                BT::OutputPort<TypeMode>("sentry_info", "哨兵信息"),
-                BT::OutputPort<TypeMode>("purple_entry_info", "紫色入口信息"),
-                BT::OutputPort<TypeMode>("green_entry_info", "绿色入口信息"),
-                BT::OutputPort<TypeMode>("purple_exit_info", "紫色出口信息"),
-                BT::OutputPort<TypeMode>("green_exit_info", "绿色出口信息"),
-                BT::OutputPort<TypeMode>("enemy_info", "敌方单位信息"),
+                // 星星信息
+                BT::OutputPort<int>("star_name", "星星类型"),
+                BT::OutputPort<bool>("star_is_exist", "星星是否存在"),
+                BT::OutputPort<bool>("star_is_out_of_center", "星星是否在中心"),
+                BT::OutputPort<double>("star_x", "星星X坐标"),
+                BT::OutputPort<double>("star_y", "星星Y坐标"),
+
+                // 基地信息
+                BT::OutputPort<int>("base_name", "基地类型"),
+                BT::OutputPort<bool>("base_is_exist", "基地是否存在"),
+                BT::OutputPort<bool>("base_is_out_of_center", "基地是否在中心"),
+                BT::OutputPort<double>("base_x", "基地X坐标"),
+                BT::OutputPort<double>("base_y", "基地Y坐标"),
+
+                // 敌方基地信息
+                BT::OutputPort<int>("enemy_base_name", "敌方基地类型"),
+                BT::OutputPort<bool>("enemy_base_is_exist", "敌方基地是否存在"),
+                BT::OutputPort<bool>("enemy_base_is_out_of_center", "敌方基地是否在中心"),
+                BT::OutputPort<double>("enemy_base_x", "敌方基地X坐标"),
+                BT::OutputPort<double>("enemy_base_y", "敌方基地Y坐标"),
+
+                // 哨兵信息
+                BT::OutputPort<int>("sentry_name", "哨兵类型"),
+                BT::OutputPort<bool>("sentry_is_exist", "哨兵是否存在"),
+                BT::OutputPort<bool>("sentry_is_out_of_center", "哨兵是否在中心"),
+                BT::OutputPort<double>("sentry_x", "哨兵X坐标"),
+                BT::OutputPort<double>("sentry_y", "哨兵Y坐标"),
+
+                // 紫色入口
+                BT::OutputPort<int>("purple_entry_name", "紫色入口类型"),
+                BT::OutputPort<bool>("purple_entry_is_exist", "紫色入口是否存在"),
+                BT::OutputPort<bool>("purple_entry_is_out_of_center", "紫色入口是否在中心"),
+                BT::OutputPort<double>("purple_entry_x", "紫色入口X坐标"),
+                BT::OutputPort<double>("purple_entry_y", "紫色入口Y坐标"),
+
+                // 绿色入口
+                BT::OutputPort<int>("green_entry_name", "绿色入口类型"),
+                BT::OutputPort<bool>("green_entry_is_exist", "绿色入口是否存在"),
+                BT::OutputPort<bool>("green_entry_is_out_of_center", "绿色入口是否在中心"),
+                BT::OutputPort<double>("green_entry_x", "绿色入口X坐标"),
+                BT::OutputPort<double>("green_entry_y", "绿色入口Y坐标"),
+
+                // 紫色出口
+                BT::OutputPort<int>("purple_exit_name", "紫色出口类型"),
+                BT::OutputPort<bool>("purple_exit_is_exist", "紫色出口是否存在"),
+                BT::OutputPort<bool>("purple_exit_is_out_of_center", "紫色出口是否在中心"),
+                BT::OutputPort<double>("purple_exit_x", "紫色出口X坐标"),
+                BT::OutputPort<double>("purple_exit_y", "紫色出口Y坐标"),
+
+                // 绿色出口
+                BT::OutputPort<int>("green_exit_name", "绿色出口类型"),
+                BT::OutputPort<bool>("green_exit_is_exist", "绿色出口是否存在"),
+                BT::OutputPort<bool>("green_exit_is_out_of_center", "绿色出口是否在中心"),
+                BT::OutputPort<double>("green_exit_x", "绿色出口X坐标"),
+                BT::OutputPort<double>("green_exit_y", "绿色出口Y坐标"),
+
+                // 敌方单位
+                BT::OutputPort<int>("enemy_name", "敌方类型"),
+                BT::OutputPort<bool>("enemy_is_exist", "敌方是否存在"),
+                BT::OutputPort<bool>("enemy_is_out_of_center", "敌方是否在中心"),
+                BT::OutputPort<double>("enemy_x", "敌方X坐标"),
+                BT::OutputPort<double>("enemy_y", "敌方Y坐标"),
+
                 BT::OutputPort<int>("enemy_num", "敌人数量"),
                 BT::OutputPort<double>("sentry_hp", "哨兵血量"),
                 BT::OutputPort<bool>("is_transfering", "是否正在传送"),
@@ -111,15 +166,68 @@ namespace nav2_behavior_tree
         int sendpasmode = 0;
         bool is_out_of_center;
 
-        TypeMode star;
-        TypeMode base;
-        TypeMode enemy_base;
-        TypeMode purpleentry;
-        TypeMode greenentry;
-        TypeMode sentry;
-        TypeMode enemy;
-        TypeMode purpleexit;
-        TypeMode greenexit;
+        // 星星/星标信息
+        int star_name;
+        bool star_is_exist;
+        bool star_is_out_of_center;
+        double star_x;
+        double star_y;
+
+        // 基地信息
+        int base_name;
+        bool base_is_exist;
+        bool base_is_out_of_center;
+        double base_x;
+        double base_y;
+
+        // 敌方基地信息
+        int enemy_base_name;
+        bool enemy_base_is_exist;
+        bool enemy_base_is_out_of_center;
+        double enemy_base_x;
+        double enemy_base_y;
+
+        // 紫色入口信息
+        int purpleentry_name;
+        bool purpleentry_is_exist;
+        bool purpleentry_is_out_of_center;
+        double purpleentry_x;
+        double purpleentry_y;
+
+        // 绿色入口信息
+        int greenentry_name;
+        bool greenentry_is_exist;
+        bool greenentry_is_out_of_center;
+        double greenentry_x;
+        double greenentry_y;
+
+        // 哨兵信息
+        int sentry_name;
+        bool sentry_is_exist;
+        bool sentry_is_out_of_center;
+        double sentry_x;
+        double sentry_y;
+
+        // 敌方单位信息
+        int enemy_name;
+        bool enemy_is_exist;
+        bool enemy_is_out_of_center;
+        double enemy_x;
+        double enemy_y;
+
+        // 紫色出口信息
+        int purpleexit_name;
+        bool purpleexit_is_exist;
+        bool purpleexit_is_out_of_center;
+        double purpleexit_x;
+        double purpleexit_y;
+
+        // 绿色出口信息
+        int greenexit_name;
+        bool greenexit_is_exist;
+        bool greenexit_is_out_of_center;
+        double greenexit_x;
+        double greenexit_y;
 
         void InitMap();
         void updatemsg(TargetType type, double x, double y, bool is_exist, bool is_out_of_center);

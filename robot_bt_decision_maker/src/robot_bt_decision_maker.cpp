@@ -37,15 +37,69 @@ DecisionMakerNode::DecisionMakerNode(std::string name) : Node(name)
     blackboard_->set<std::chrono::milliseconds>("bt_loop_duration", bt_loop_duration_); // NOLINT
 
     // 自定义黑板变量在这边声明，注意声明类型和后续用的类型要一致，无自动类型转换
-    blackboard_->set<TypeMode>("star_info", star);
-    blackboard_->set<TypeMode>("base_info", base);
-    blackboard_->set<TypeMode>("enemy_base_info", enemy_base);
-    blackboard_->set<TypeMode>("sentry_info", sentry);
-    blackboard_->set<TypeMode>("purple_entry_info", purpleentry);
-    blackboard_->set<TypeMode>("green_entry_info", greenentry);
-    blackboard_->set<TypeMode>("purple_exit_info", purpleexit);
-    blackboard_->set<TypeMode>("green_exit_info", greenexit);
-    blackboard_->set<TypeMode>("enemy_info", enemy);
+    // 星星信息
+    blackboard_->set<int>("star_name", star_name);
+    blackboard_->set<bool>("star_is_exist", star_is_exist);
+    blackboard_->set<bool>("star_is_out_of_center", star_is_out_of_center);
+    blackboard_->set<double>("star_x", star_x);
+    blackboard_->set<double>("star_y", star_y);
+
+    // 基地信息
+    blackboard_->set<int>("base_name", base_name);
+    blackboard_->set<bool>("base_is_exist", base_is_exist);
+    blackboard_->set<bool>("base_is_out_of_center", base_is_out_of_center);
+    blackboard_->set<double>("base_x", base_x);
+    blackboard_->set<double>("base_y", base_y);
+
+    // 敌方基地信息
+    blackboard_->set<int>("enemy_base_name", enemy_base_name);
+    blackboard_->set<bool>("enemy_base_is_exist", enemy_base_is_exist);
+    blackboard_->set<bool>("enemy_base_is_out_of_center", enemy_base_is_out_of_center);
+    blackboard_->set<double>("enemy_base_x", enemy_base_x);
+    blackboard_->set<double>("enemy_base_y", enemy_base_y);
+
+    // 哨兵信息
+    blackboard_->set<int>("sentry_name", sentry_name);
+    blackboard_->set<bool>("sentry_is_exist", sentry_is_exist);
+    blackboard_->set<bool>("sentry_is_out_of_center", sentry_is_out_of_center);
+    blackboard_->set<double>("sentry_x", sentry_x);
+    blackboard_->set<double>("sentry_y", sentry_y);
+
+    // 紫色入口信息
+    blackboard_->set<int>("purple_entry_name", purpleentry_name);
+    blackboard_->set<bool>("purple_entry_is_exist", purpleentry_is_exist);
+    blackboard_->set<bool>("purple_entry_is_out_of_center", purpleentry_is_out_of_center);
+    blackboard_->set<double>("purple_entry_x", purpleentry_x);
+    blackboard_->set<double>("purple_entry_y", purpleentry_y);
+
+    // 绿色入口信息
+    blackboard_->set<int>("green_entry_name", greenentry_name);
+    blackboard_->set<bool>("green_entry_is_exist", greenentry_is_exist);
+    blackboard_->set<bool>("green_entry_is_out_of_center", greenentry_is_out_of_center);
+    blackboard_->set<double>("green_entry_x", greenentry_x);
+    blackboard_->set<double>("green_entry_y", greenentry_y);
+
+    // 紫色出口信息
+    blackboard_->set<int>("purple_exit_name", purpleexit_name);
+    blackboard_->set<bool>("purple_exit_is_exist", purpleexit_is_exist);
+    blackboard_->set<bool>("purple_exit_is_out_of_center", purpleexit_is_out_of_center);
+    blackboard_->set<double>("purple_exit_x", purpleexit_x);
+    blackboard_->set<double>("purple_exit_y", purpleexit_y);
+
+    // 绿色出口信息
+    blackboard_->set<int>("green_exit_name", greenexit_name);
+    blackboard_->set<bool>("green_exit_is_exist", greenexit_is_exist);
+    blackboard_->set<bool>("green_exit_is_out_of_center", greenexit_is_out_of_center);
+    blackboard_->set<double>("green_exit_x", greenexit_x);
+    blackboard_->set<double>("green_exit_y", greenexit_y);
+
+    // 敌方单位信息
+    blackboard_->set<int>("enemy_name", enemy_name);
+    blackboard_->set<bool>("enemy_is_exist", enemy_is_exist);
+    blackboard_->set<bool>("enemy_is_out_of_center", enemy_is_out_of_center);
+    blackboard_->set<double>("enemy_x", enemy_x);
+    blackboard_->set<double>("enemy_y", enemy_y);
+
     blackboard_->set<int>("enemy_num", 2);
     blackboard_->set<double>("sentry_hp", 100);
     blackboard_->set<bool>("is_transfering", false);
@@ -61,6 +115,8 @@ DecisionMakerNode::DecisionMakerNode(std::string name) : Node(name)
     blackboard_->set<bool>("startflag", startflag);
     blackboard_->set<bool>("is_out_of_center", is_out_of_center);
     blackboard_->set<double>("navvelre", navvelre);
+    blackboard_->set<double>("goal_x", goal_x);
+    blackboard_->set<double>("goal_y", goal_y);
 
     if (!loadBehaviorTree(bt_xml_filename_, blackboard_))
     {
@@ -122,30 +178,86 @@ bool DecisionMakerNode::loadBehaviorTree(const std::string &bt_xml_filename, BT:
             blackboard->set<std::chrono::milliseconds>("bt_loop_duration", bt_loop_duration_); // NOLINT
 
             // 自定义黑板变量在这边要再放一遍
-            blackboard_->set<TypeMode>("star_info", star);
-            blackboard_->set<TypeMode>("base_info", base);
-            blackboard_->set<TypeMode>("enemy_base_info", enemy_base);
-            blackboard_->set<TypeMode>("sentry_info", sentry);
-            blackboard_->set<TypeMode>("purple_entry_info", purpleentry);
-            blackboard_->set<TypeMode>("green_entry_info", greenentry);
-            blackboard_->set<TypeMode>("purple_exit_info", purpleexit);
-            blackboard_->set<TypeMode>("green_exit_info", greenexit);
-            blackboard_->set<TypeMode>("enemy_info", enemy);
-            blackboard_->set<int>("enemy_num", 2);
-            blackboard_->set<double>("sentry_hp", 100);
-            blackboard_->set<bool>("is_transfering", false);
-            blackboard_->set<bool>("is_bullet_low", false);
-            blackboard_->set<nav_msgs::msg::OccupancyGrid>("map_data", latest_map);
-            blackboard_->set<nav_msgs::msg::Odometry>("robot_pose", latest_odom);
-            blackboard_->set<bool>("map_ready", false);
-            blackboard_->set<int>("sendpasmode", 0);
-            blackboard_->set<uint64_t>("Password1", Password1);
-            blackboard_->set<uint64_t>("Password1", Password2);
-            blackboard_->set<int64_t>("Password_rec", Password_rec);
-            blackboard_->set<int>("sendpassmode", sendpasmode);
-            blackboard_->set<bool>("startflag", startflag);
-            blackboard_->set<bool>("is_out_of_center", is_out_of_center);
-            blackboard_->set<double>("navvelre", navvelre);
+            // 星星信息
+    blackboard_->set<int>("star_name", star_name);
+    blackboard_->set<bool>("star_is_exist", star_is_exist);
+    blackboard_->set<bool>("star_is_out_of_center", star_is_out_of_center);
+    blackboard_->set<double>("star_x", star_x);
+    blackboard_->set<double>("star_y", star_y);
+
+    // 基地信息
+    blackboard_->set<int>("base_name", base_name);
+    blackboard_->set<bool>("base_is_exist", base_is_exist);
+    blackboard_->set<bool>("base_is_out_of_center", base_is_out_of_center);
+    blackboard_->set<double>("base_x", base_x);
+    blackboard_->set<double>("base_y", base_y);
+
+    // 敌方基地信息
+    blackboard_->set<int>("enemy_base_name", enemy_base_name);
+    blackboard_->set<bool>("enemy_base_is_exist", enemy_base_is_exist);
+    blackboard_->set<bool>("enemy_base_is_out_of_center", enemy_base_is_out_of_center);
+    blackboard_->set<double>("enemy_base_x", enemy_base_x);
+    blackboard_->set<double>("enemy_base_y", enemy_base_y);
+
+    // 哨兵信息
+    blackboard_->set<int>("sentry_name", sentry_name);
+    blackboard_->set<bool>("sentry_is_exist", sentry_is_exist);
+    blackboard_->set<bool>("sentry_is_out_of_center", sentry_is_out_of_center);
+    blackboard_->set<double>("sentry_x", sentry_x);
+    blackboard_->set<double>("sentry_y", sentry_y);
+
+    // 紫色入口信息
+    blackboard_->set<int>("purple_entry_name", purpleentry_name);
+    blackboard_->set<bool>("purple_entry_is_exist", purpleentry_is_exist);
+    blackboard_->set<bool>("purple_entry_is_out_of_center", purpleentry_is_out_of_center);
+    blackboard_->set<double>("purple_entry_x", purpleentry_x);
+    blackboard_->set<double>("purple_entry_y", purpleentry_y);
+
+    // 绿色入口信息
+    blackboard_->set<int>("green_entry_name", greenentry_name);
+    blackboard_->set<bool>("green_entry_is_exist", greenentry_is_exist);
+    blackboard_->set<bool>("green_entry_is_out_of_center", greenentry_is_out_of_center);
+    blackboard_->set<double>("green_entry_x", greenentry_x);
+    blackboard_->set<double>("green_entry_y", greenentry_y);
+
+    // 紫色出口信息
+    blackboard_->set<int>("purple_exit_name", purpleexit_name);
+    blackboard_->set<bool>("purple_exit_is_exist", purpleexit_is_exist);
+    blackboard_->set<bool>("purple_exit_is_out_of_center", purpleexit_is_out_of_center);
+    blackboard_->set<double>("purple_exit_x", purpleexit_x);
+    blackboard_->set<double>("purple_exit_y", purpleexit_y);
+
+    // 绿色出口信息
+    blackboard_->set<int>("green_exit_name", greenexit_name);
+    blackboard_->set<bool>("green_exit_is_exist", greenexit_is_exist);
+    blackboard_->set<bool>("green_exit_is_out_of_center", greenexit_is_out_of_center);
+    blackboard_->set<double>("green_exit_x", greenexit_x);
+    blackboard_->set<double>("green_exit_y", greenexit_y);
+
+    // 敌方单位信息
+    blackboard_->set<int>("enemy_name", enemy_name);
+    blackboard_->set<bool>("enemy_is_exist", enemy_is_exist);
+    blackboard_->set<bool>("enemy_is_out_of_center", enemy_is_out_of_center);
+    blackboard_->set<double>("enemy_x", enemy_x);
+    blackboard_->set<double>("enemy_y", enemy_y);
+
+    blackboard_->set<int>("enemy_num", 2);
+    blackboard_->set<double>("sentry_hp", 100);
+    blackboard_->set<bool>("is_transfering", false);
+    blackboard_->set<bool>("is_bullet_low", false);
+    blackboard_->set<nav_msgs::msg::OccupancyGrid>("map_data", latest_map);
+    blackboard_->set<nav_msgs::msg::Odometry>("robot_pose", latest_odom);
+    blackboard_->set<bool>("map_ready", false);
+    blackboard_->set<int>("sendpasmode", 0);
+    blackboard_->set<uint64_t>("Password1", Password1);
+    blackboard_->set<uint64_t>("Password1", Password2);
+    blackboard_->set<int64_t>("Password_rec", Password_rec);
+    blackboard_->set<int>("sendpassmode", sendpasmode);
+    blackboard_->set<bool>("startflag", startflag);
+    blackboard_->set<bool>("is_out_of_center", is_out_of_center);
+    blackboard_->set<double>("navvelre", navvelre);
+    blackboard_->set<double>("goal_x", goal_x);
+    blackboard_->set<double>("goal_y", goal_y);
         }
     }
     catch (const std::exception &e)

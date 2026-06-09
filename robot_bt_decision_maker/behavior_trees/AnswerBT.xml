@@ -1,20 +1,98 @@
-<?xml version="1.0"?>
-<root main_tree_to_execute="BehaviorTree">
-    <!-- ////////// -->
-    <BehaviorTree ID="BehaviorTree">
-        <ReactiveSequence>
-            <Action ID="UpdateMapinfo"/>
-            <Condition ID="IfGameStart"/>
-            <Action ID="NavVelRemap"/>
-            <Action ID="GoBase"/>
-        </ReactiveSequence>
+<?xml version="1.0" encoding="UTF-8"?>
+<root main_tree_to_execute="MainTree">
+
+    <BehaviorTree ID="MainTree">
+        <Sequence name="主序列">
+            
+            <!-- 1. 更新地图信息（输出各种信息到黑板） -->
+            <UpdateMapinfo name="更新地图"
+                star_name="{star_name}"
+                star_is_exist="{star_is_exist}"
+                star_is_out_of_center="{star_is_out_of_center}"
+                star_x="{star_x}"
+                star_y="{star_y}"
+                
+                base_name="{base_name}"
+                base_is_exist="{base_is_exist}"
+                base_is_out_of_center="{base_is_out_of_center}"
+                base_x="{base_x}"
+                base_y="{base_y}"
+                
+                enemy_base_name="{enemy_base_name}"
+                enemy_base_is_exist="{enemy_base_is_exist}"
+                enemy_base_is_out_of_center="{enemy_base_is_out_of_center}"
+                enemy_base_x="{enemy_base_x}"
+                enemy_base_y="{enemy_base_y}"
+                
+                sentry_name="{sentry_name}"
+                sentry_is_exist="{sentry_is_exist}"
+                sentry_is_out_of_center="{sentry_is_out_of_center}"
+                sentry_x="{sentry_x}"
+                sentry_y="{sentry_y}"
+                
+                purple_entry_name="{purple_entry_name}"
+                purple_entry_is_exist="{purple_entry_is_exist}"
+                purple_entry_is_out_of_center="{purple_entry_is_out_of_center}"
+                purple_entry_x="{purple_entry_x}"
+                purple_entry_y="{purple_entry_y}"
+                
+                green_entry_name="{green_entry_name}"
+                green_entry_is_exist="{green_entry_is_exist}"
+                green_entry_is_out_of_center="{green_entry_is_out_of_center}"
+                green_entry_x="{green_entry_x}"
+                green_entry_y="{green_entry_y}"
+                
+                purple_exit_name="{purple_exit_name}"
+                purple_exit_is_exist="{purple_exit_is_exist}"
+                purple_exit_is_out_of_center="{purple_exit_is_out_of_center}"
+                purple_exit_x="{purple_exit_x}"
+                purple_exit_y="{purple_exit_y}"
+                
+                green_exit_name="{green_exit_name}"
+                green_exit_is_exist="{green_exit_is_exist}"
+                green_exit_is_out_of_center="{green_exit_is_out_of_center}"
+                green_exit_x="{green_exit_x}"
+                green_exit_y="{green_exit_y}"
+                
+                enemy_name="{enemy_name}"
+                enemy_is_exist="{enemy_is_exist}"
+                enemy_is_out_of_center="{enemy_is_out_of_center}"
+                enemy_x="{enemy_x}"
+                enemy_y="{enemy_y}"
+                
+                enemy_num="{enemy_num}"
+                sentry_hp="{sentry_hp}"
+                is_transfering="{is_transfering}"
+                is_bullet_low="{is_bullet_low}"
+                map_data="{map_data}"
+                robot_pose="{robot_pose}"
+                map_ready="{map_ready}"
+                sendpasmode="{sendpasmode}" />
+            
+            <!-- 2. 检查游戏是否开始 -->
+            <IfGameStart name="检查游戏开始"
+                startflag="{startflag}" />
+            
+            <!-- 3. 重新映射导航速度 -->
+            <Navvelremap name="速度映射"
+                navvelre="{navvelre}" />
+            
+            <!-- 4. 决策目标点（输出 goal_x, goal_y 到黑板） -->
+            <GoBase name="决策目标"
+                goal_x="{goal_x}"
+                goal_y="{goal_y}" />
+            
+            <!-- 5. 发送密码 -->
+            <RSendPassward name="发送密码"
+                Password1="{Password1}"
+                Password2="{Password2}"
+                Password_rec="{Password_rec}" />
+            
+            <!-- 6. 攻击 -->
+            <Fire name="攻击"
+                is_bullet_low="{is_bullet_low}" />
+            
+        </Sequence>
     </BehaviorTree>
-    <!-- ////////// -->
-    <TreeNodesModel>
-        <Action ID="GoBase"/>
-        <Condition ID="IfGameStart"/>
-        <Action ID="NavVelRemap"/>
-        <Action ID="UpdateMapinfo"/>
-    </TreeNodesModel>
-    <!-- ////////// -->
+
 </root>

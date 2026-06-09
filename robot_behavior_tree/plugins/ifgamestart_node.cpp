@@ -17,7 +17,7 @@ namespace nav2_behavior_tree
             "/map",
             map_qos,
             std::bind(&IfGameStart::mapCallback, this, std::placeholders::_1));
-        RCLCPP_INFO(node_->get_logger(), "Game start detected /map topic");
+        RCLCPP_INFO(node_->get_logger(),"\033[33m", "\033[33m","Game start detected /map topic");
     }
 
     BT::NodeStatus IfGameStart::tick()
