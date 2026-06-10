@@ -1,11 +1,47 @@
-<root>
-    <TreeNodesModel>
-        <Action ID="GoBase"/>
-        <Condition ID="IfGameStart"/>
-        <Action ID="NavVelRemap"/>
-        <Action ID="UpdateMapinfo"/>
-        <Action ID="RSendPassward"/>
-        <Action ID="Fire"/>
-    </TreeNodesModel>
-</root>
+<library path="nav2_updatemapinfo_node_bt_node">
+  <class name="UpdateMapinfo"
+         type="nav2_behavior_tree::UpdateMapinfo"
+         base_class_type="BT::ActionNodeBase">
+    <description>Update map information from perception node</description>
+  </class>
+</library>
 
+<library path="nav2_ifgamestart_node_bt_node">
+  <class name="IfGameStart"
+         type="nav2_behavior_tree::IfGameStart"
+         base_class_type="BT::ConditionNode">
+    <description>Check if game has started</description>
+  </class>
+</library>
+
+<library path="nav2_navvelremap_node_bt_node">
+  <class name="NavVelRemap"
+         type="nav2_behavior_tree::Navvelremap"
+         base_class_type="BT::ActionNodeBase">
+    <description>Remap navigation velocity</description>
+  </class>
+</library>
+
+<library path="nav2_gobase_node_bt_node">
+  <class name="GoBase"
+         type="nav2_behavior_tree::GoBase"
+         base_class_type="BT::ActionNodeBase">
+    <description>Decide target point</description>
+  </class>
+</library>
+
+<library path="nav2_rsendpassward_node_bt_node">
+  <class name="RSendPassward"
+         type="nav2_behavior_tree::RSendPassward"
+         base_class_type="BT::ActionNodeBase">
+    <description>Send password</description>
+  </class>
+</library>
+
+<library path="nav2_fire_node_bt_node">
+  <class name="Fire"
+         type="nav2_behavior_tree::Fire"
+         base_class_type="BT::ActionNodeBase">
+    <description>Fire action</description>
+  </class>
+</library>

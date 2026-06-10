@@ -47,7 +47,7 @@ set(dependencies
   tf2_ros
   robot_msgs
   sensor_msgs  
-  tf2          
+  tf2    
 )
 
 set(SERIAL_PRO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../serialPro)

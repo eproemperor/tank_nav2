@@ -8,7 +8,7 @@ namespace nav2_behavior_tree
         : BT::ConditionNode(condition_name, conf)
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
-        RCLCPP_INFO(node_->get_logger(),"\033[33m", "速度重映射");
+        RCLCPP_INFO(node_->get_logger(), "速度重映射");
     }
 
     void Navvelremap::setvel()
@@ -19,10 +19,13 @@ namespace nav2_behavior_tree
     BT::NodeStatus Navvelremap::tick()
     {
         setOutput<double>("navvel", newnavvel);
+        RCLCPP_INFO(node_->get_logger(), "速度重映射");
+        return BT::NodeStatus::SUCCESS;
     }
 
-    BT_REGISTER_NODES(factory)
-    {
-        factory.registerNodeType<nav2_behavior_tree::Navvelremap>("Navvelremap");
-    }
+}
+
+BT_REGISTER_NODES(factory)
+{
+    factory.registerNodeType<nav2_behavior_tree::Navvelremap>("Navvelremap");
 }

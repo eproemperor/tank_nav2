@@ -17,6 +17,11 @@
 #include "geometry_msgs/msg/quaternion.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "updatemapinfo_node.h"
+#include "ifgamestart_node.h"
+#include "navvelremap_node.h"
+#include "gobase_node.h"
+#include "rsendpassward_node.h"
+#include"fire_node.h"
 
 class DecisionMakerNode : public rclcpp::Node
 {
@@ -50,63 +55,62 @@ private:
     bool star_is_out_of_center;
     double star_x;
     double star_y;
-    
+
     // 基地信息
     int base_name;
     bool base_is_exist;
     bool base_is_out_of_center;
     double base_x;
     double base_y;
-    
+
     // 敌方基地信息
     int enemy_base_name;
     bool enemy_base_is_exist;
     bool enemy_base_is_out_of_center;
     double enemy_base_x;
     double enemy_base_y;
-    
+
     // 紫色入口信息
     int purpleentry_name;
     bool purpleentry_is_exist;
     bool purpleentry_is_out_of_center;
     double purpleentry_x;
     double purpleentry_y;
-    
+
     // 绿色入口信息
     int greenentry_name;
     bool greenentry_is_exist;
     bool greenentry_is_out_of_center;
     double greenentry_x;
     double greenentry_y;
-    
+
     // 哨兵信息
     int sentry_name;
     bool sentry_is_exist;
     bool sentry_is_out_of_center;
     double sentry_x;
     double sentry_y;
-    
+
     // 敌方单位信息
     int enemy_name;
     bool enemy_is_exist;
     bool enemy_is_out_of_center;
     double enemy_x;
     double enemy_y;
-    
+
     // 紫色出口信息
     int purpleexit_name;
     bool purpleexit_is_exist;
     bool purpleexit_is_out_of_center;
     double purpleexit_x;
     double purpleexit_y;
-    
+
     // 绿色出口信息
     int greenexit_name;
     bool greenexit_is_exist;
     bool greenexit_is_out_of_center;
     double greenexit_x;
     double greenexit_y;
-
 
     nav_msgs::msg::OccupancyGrid latest_map;
     nav_msgs::msg::Odometry latest_odom;
