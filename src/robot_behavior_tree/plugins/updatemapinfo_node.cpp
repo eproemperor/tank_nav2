@@ -313,7 +313,7 @@ namespace nav2_behavior_tree
             RCLCPP_WARN(node_->get_logger(),
                         "Waiting for data: map=%d, odom=%d, map_info=%d",
                         map_received, odom_received, map_info_received);
-            return BT::NodeStatus::FAILURE;
+            return BT::NodeStatus::SUCCESS;
         }
 
         // 输出拆分为基本类型的数据
