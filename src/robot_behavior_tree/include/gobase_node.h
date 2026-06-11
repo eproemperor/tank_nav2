@@ -12,6 +12,8 @@
 #include "nav_msgs/msg/occupancy_grid.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "behaviortree_cpp_v3/bt_factory.h"
+#include "geometry_msgs/msg/pose2_d.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
 namespace nav2_behavior_tree
 {
@@ -91,7 +93,8 @@ namespace nav2_behavior_tree
                 
                 // 输出端口
                 BT::OutputPort<double>("goal_x", "目标点x坐标"),
-                BT::OutputPort<double>("goal_y", "目标点y坐标")};
+                BT::OutputPort<double>("goal_y", "目标点y坐标"),
+                BT::OutputPort<geometry_msgs::msg::PoseStamped>("goal", "目标点x坐标"),};
         }
 
     private:
@@ -157,6 +160,8 @@ namespace nav2_behavior_tree
         bool is_bullet_low;
         double goal_x;
         double goal_y;
+
+        geometry_msgs::msg::PoseStamped goal_;
 
         int setTargetType();
         

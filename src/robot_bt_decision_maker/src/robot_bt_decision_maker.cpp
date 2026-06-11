@@ -175,7 +175,7 @@ bool DecisionMakerNode::loadBehaviorTree(const std::string &bt_xml_filename, BT:
         factory.registerNodeType<nav2_behavior_tree::IfGameStart>("IfGameStart");
         factory.registerNodeType<nav2_behavior_tree::Gobase>("GoBase");
         factory.registerNodeType<nav2_behavior_tree::Navvelremap>("Navvelremap");
-        `factory.registerNodeType<nav2_behavior_tree::RSendPassward>("RSendPassward");
+        //factory.registerNodeType<nav2_behavior_tree::RSendPassward>("RSendPassward");
         //factory.registerNodeType<nav2_behavior_tree::Fire>("Fire");
 
         tree_ = factory.createTreeFromFile(bt_xml_filename, blackboard);

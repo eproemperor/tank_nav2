@@ -296,7 +296,7 @@ namespace nav2_behavior_tree
         is_bullet_low = msg->is_bullet_low;
 
         map_info_received = true;
-        RCLCPP_INFO(node_->get_logger(), "接受信息:x=%.2f, y=%.2f",sentry_x,sentry_y);
+        RCLCPP_INFO(node_->get_logger(), "接受信息:x=%.2f, y=%.2f", sentry_x, sentry_y);
     };
 
     BT::NodeStatus UpdateMapinfo::tick()

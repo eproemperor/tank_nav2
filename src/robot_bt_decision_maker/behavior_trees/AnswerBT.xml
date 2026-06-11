@@ -22,11 +22,6 @@
                 goal_x="{goal_x}"
                 goal_y="{goal_y}" />
             
-            <!-- 5. 发送密码 -->
-            <RSendPassward name="发送密码"
-                Password1="{Password1}"
-                Password2="{Password2}"
-                Password_rec="{Password_rec}" />
             
             
         </Sequence>

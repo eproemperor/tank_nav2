@@ -112,39 +112,36 @@ namespace nav2_behavior_tree
         switch (type)
         {
         case TargetType::STAR:
-            goal_x = star_x;
-            goal_y = star_y;
+            goal_.pose.position.x= star_x;
+            goal_.pose.position.y = star_y;
             break;
         case TargetType::BASE:
-            goal_x = base_x;
-            goal_y = base_y;
+            goal_.pose.position.x = base_x;
+            goal_.pose.position.y = base_y;
             break;
         case TargetType::ENEMY_BASE:
-            goal_x = enemy_base_x;
-            goal_y = enemy_base_y;
+            goal_.pose.position.x = enemy_base_x;
+            goal_.pose.position.y = enemy_base_y;
             break;
         case TargetType::GREENENTRY:
-            goal_x = greenentry_x;
-            goal_y = greenentry_y;
+            goal_.pose.position.x = greenentry_x;
+            goal_.pose.position.y = greenentry_y;
             break;
         case TargetType::ENEMY:
-            goal_x = enemy_x;
-            goal_y = enemy_y;
+            goal_.pose.position.x = enemy_x;
+            goal_.pose.position.y = enemy_y;
             break;
         case TargetType::GREENEXIT:
-            goal_x = greenexit_x;
-            goal_y = greenexit_y;
+            goal_.pose.position.x = greenexit_x;
+            goal_.pose.position.y = greenexit_y;
             break;
         default:
-            goal_x = base_x;
-            goal_y = base_y;
+            goal_.pose.position.x = base_x;
+            goal_.pose.position.y = base_y;
             break;
         }
-        
-        setOutput("goal_x", goal_x);
-        setOutput("goal_y", goal_y);
-        
-        RCLCPP_INFO(node_->get_logger(), "GoBase: target type=%d, goal=(%.2f, %.2f)", type, goal_x, goal_y);
+        setOutput("goal",goal_);
+        RCLCPP_INFO(node_->get_logger(), "GoBase: target type=%d, goal=(%.2f, %.2f)", type, goal_.pose.position.x, goal_.pose.position.y);
         
         return BT::NodeStatus::SUCCESS;
     };
