@@ -7,6 +7,7 @@
 #include "behaviortree_cpp_v3/bt_factory.h"
 #include"geometry_msgs/msg/pose2_d.hpp"
 #include"geometry_msgs/msg/pose.hpp"
+#include "nav2_core/controller.hpp"
 
 namespace nav2_behavior_tree
 {
@@ -27,6 +28,8 @@ namespace nav2_behavior_tree
     private:
         rclcpp::Node::SharedPtr node_;
         rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr Pos_;
+        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr comwel_sub_;
+        void myCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
         void setvel();
         double newnavvel=100.0;
         geometry_msgs::msg::Pose2D Pose2D_;
