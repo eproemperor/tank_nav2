@@ -140,7 +140,7 @@ namespace nav2_behavior_tree
             goal_.pose.position.y = base_y;
             break;
         }
-        setOutput("goal",goal_);
+        config().blackboard->set("goal",goal_);
         RCLCPP_INFO(node_->get_logger(), "GoBase: target type=%d, goal=(%.2f, %.2f)", type, goal_.pose.position.x, goal_.pose.position.y);
         
         return BT::NodeStatus::SUCCESS;

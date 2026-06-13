@@ -21,16 +21,16 @@ namespace nav2_behavior_tree
         case 0:
             RobotMsgProcess_.receive_password();
             Password1 = RobotMsgProcess_.getPassword1();
-            setOutput("Password1", Password1);
+            config().blackboard->set("Password1", Password1);
             sendpasmode++;
-            setOutput("sendpassmode", sendpasmode);
+            config().blackboard->set("sendpassmode", sendpasmode);
             break;
         case 1:
             RobotMsgProcess_.receive_password();
             Password2 = RobotMsgProcess_.getPassword2();
-            setOutput("Password2", Password2);
+            config().blackboard->set("Password2", Password2);
             sendpasmode++;
-            setOutput("sendpassmode", sendpasmode);
+            config().blackboard->set("sendpassmode", sendpasmode);
             break;
 
         case 2:
@@ -38,13 +38,13 @@ namespace nav2_behavior_tree
             sendpasmode++;
             RobotMsgProcess_.receive_password();
             Password_rec = RobotMsgProcess_.getPassword_rec();
-            setOutput("Password_rec", Password_rec);
-            setOutput("sendpassmode", sendpasmode);
+            config().blackboard->set("Password_rec", Password_rec);
+            config().blackboard->set("sendpassmode", sendpasmode);
             break;
         case 3:
             RobotMsgProcess_.send_password(Password_rec);
             sendpasmode++;
-            setOutput("sendpassmode", sendpasmode);
+            config().blackboard->set("sendpassmode", sendpasmode);
             break;
         default:
             return BT::NodeStatus::SUCCESS;

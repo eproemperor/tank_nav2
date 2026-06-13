@@ -1,0 +1,11 @@
+<root>
+    <TreeNodesModel>
+        <Condition ID="IfGameStart">
+            <output_port name="startflag"/>
+        </Condition>
+        <Action ID="NavigateToPose">
+            <input_port default="{goal}" name="goal">Goal</input_port>
+        </Action>
+    </TreeNodesModel>
+</root>
+

@@ -21,8 +21,10 @@
             <GoBase name="决策目标"
                 goal_x="{goal_x}"
                 goal_y="{goal_y}" />
-            
-            
+
+            <!-- 5. 执行导航到目标点 -->
+            <NavigateToPose name="navtopose"
+                goal="{goal}" />
             
         </Sequence>
     </BehaviorTree>

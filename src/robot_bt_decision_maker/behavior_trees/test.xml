@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <ReactiveSequence>
+            <Condition ID="IfGameStart" startflag="{startflag}"/>
+            <Action ID="NavigateToPose" goal="{goal}"/>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Condition ID="IfGameStart">
+            <output_port name="startflag"/>
+        </Condition>
+        <Action ID="NavigateToPose">
+            <input_port default="{goal}" name="goal">Goal</input_port>
+        </Action>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>

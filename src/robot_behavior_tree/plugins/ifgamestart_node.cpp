@@ -25,7 +25,7 @@ namespace nav2_behavior_tree
         std::lock_guard<std::mutex> lock(data_mutex);
         if (startflag == true)
         {
-            setOutput("startflag", startflag);
+            config().blackboard->set("startflag", startflag);
             return BT::NodeStatus::SUCCESS;
         }
         else

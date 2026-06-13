@@ -319,77 +319,77 @@ namespace nav2_behavior_tree
 
         // 输出拆分为基本类型的数据
         // 星星信息
-        setOutput("star_name", star_name);
-        setOutput("star_is_exist", star_is_exist);
-        setOutput("star_is_out_of_center", star_is_out_of_center);
-        setOutput("star_x", star_x);
-        setOutput("star_y", star_y);
+        config().blackboard->set("star_name", star_name);
+        config().blackboard->set("star_is_exist", star_is_exist);
+        config().blackboard->set("star_is_out_of_center", star_is_out_of_center);
+        config().blackboard->set("star_x", star_x);
+        config().blackboard->set("star_y", star_y);
 
         // 基地信息
-        setOutput("base_name", base_name);
-        setOutput("base_is_exist", base_is_exist);
-        setOutput("base_is_out_of_center", base_is_out_of_center);
-        setOutput("base_x", base_x);
-        setOutput("base_y", base_y);
+        config().blackboard->set("base_name", base_name);
+        config().blackboard->set("base_is_exist", base_is_exist);
+        config().blackboard->set("base_is_out_of_center", base_is_out_of_center);
+        config().blackboard->set("base_x", base_x);
+        config().blackboard->set("base_y", base_y);
 
         // 敌方基地信息
-        setOutput("enemy_base_name", enemy_base_name);
-        setOutput("enemy_base_is_exist", enemy_base_is_exist);
-        setOutput("enemy_base_is_out_of_center", enemy_base_is_out_of_center);
-        setOutput("enemy_base_x", enemy_base_x);
-        setOutput("enemy_base_y", enemy_base_y);
+        config().blackboard->set("enemy_base_name", enemy_base_name);
+        config().blackboard->set("enemy_base_is_exist", enemy_base_is_exist);
+        config().blackboard->set("enemy_base_is_out_of_center", enemy_base_is_out_of_center);
+        config().blackboard->set("enemy_base_x", enemy_base_x);
+        config().blackboard->set("enemy_base_y", enemy_base_y);
 
         // 哨兵信息
-        setOutput("sentry_name", sentry_name);
-        setOutput("sentry_is_exist", sentry_is_exist);
-        setOutput("sentry_is_out_of_center", sentry_is_out_of_center);
-        setOutput("sentry_x", sentry_x);
-        setOutput("sentry_y", sentry_y);
+        config().blackboard->set("sentry_name", sentry_name);
+        config().blackboard->set("sentry_is_exist", sentry_is_exist);
+        config().blackboard->set("sentry_is_out_of_center", sentry_is_out_of_center);
+        config().blackboard->set("sentry_x", sentry_x);
+        config().blackboard->set("sentry_y", sentry_y);
 
         // 紫色入口信息
-        setOutput("purple_entry_name", purpleentry_name);
-        setOutput("purple_entry_is_exist", purpleentry_is_exist);
-        setOutput("purple_entry_is_out_of_center", purpleentry_is_out_of_center);
-        setOutput("purple_entry_x", purpleentry_x);
-        setOutput("purple_entry_y", purpleentry_y);
+        config().blackboard->set("purple_entry_name", purpleentry_name);
+        config().blackboard->set("purple_entry_is_exist", purpleentry_is_exist);
+        config().blackboard->set("purple_entry_is_out_of_center", purpleentry_is_out_of_center);
+        config().blackboard->set("purple_entry_x", purpleentry_x);
+        config().blackboard->set("purple_entry_y", purpleentry_y);
 
         // 绿色入口信息
-        setOutput("green_entry_name", greenentry_name);
-        setOutput("green_entry_is_exist", greenentry_is_exist);
-        setOutput("green_entry_is_out_of_center", greenentry_is_out_of_center);
-        setOutput("green_entry_x", greenentry_x);
-        setOutput("green_entry_y", greenentry_y);
+        config().blackboard->set("green_entry_name", greenentry_name);
+        config().blackboard->set("green_entry_is_exist", greenentry_is_exist);
+        config().blackboard->set("green_entry_is_out_of_center", greenentry_is_out_of_center);
+        config().blackboard->set("green_entry_x", greenentry_x);
+        config().blackboard->set("green_entry_y", greenentry_y);
 
         // 紫色出口信息
-        setOutput("purple_exit_name", purpleexit_name);
-        setOutput("purple_exit_is_exist", purpleexit_is_exist);
-        setOutput("purple_exit_is_out_of_center", purpleexit_is_out_of_center);
-        setOutput("purple_exit_x", purpleexit_x);
-        setOutput("purple_exit_y", purpleexit_y);
+        config().blackboard->set("purple_exit_name", purpleexit_name);
+        config().blackboard->set("purple_exit_is_exist", purpleexit_is_exist);
+        config().blackboard->set("purple_exit_is_out_of_center", purpleexit_is_out_of_center);
+        config().blackboard->set("purple_exit_x", purpleexit_x);
+        config().blackboard->set("purple_exit_y", purpleexit_y);
 
         // 绿色出口信息
-        setOutput("green_exit_name", greenexit_name);
-        setOutput("green_exit_is_exist", greenexit_is_exist);
-        setOutput("green_exit_is_out_of_center", greenexit_is_out_of_center);
-        setOutput("green_exit_x", greenexit_x);
-        setOutput("green_exit_y", greenexit_y);
+        config().blackboard->set("green_exit_name", greenexit_name);
+        config().blackboard->set("green_exit_is_exist", greenexit_is_exist);
+        config().blackboard->set("green_exit_is_out_of_center", greenexit_is_out_of_center);
+        config().blackboard->set("green_exit_x", greenexit_x);
+        config().blackboard->set("green_exit_y", greenexit_y);
 
         // 敌方单位信息
-        setOutput("enemy_name", enemy_name);
-        setOutput("enemy_is_exist", enemy_is_exist);
-        setOutput("enemy_is_out_of_center", enemy_is_out_of_center);
-        setOutput("enemy_x", enemy_x);
-        setOutput("enemy_y", enemy_y);
+        config().blackboard->set("enemy_name", enemy_name);
+        config().blackboard->set("enemy_is_exist", enemy_is_exist);
+        config().blackboard->set("enemy_is_out_of_center", enemy_is_out_of_center);
+        config().blackboard->set("enemy_x", enemy_x);
+        config().blackboard->set("enemy_y", enemy_y);
 
-        setOutput("enemy_num", enemy_num);
-        setOutput("sentry_hp", sentry_hp);
-        setOutput("is_transfering", is_transfering);
-        setOutput("is_bullet_low", is_bullet_low);
+        config().blackboard->set("enemy_num", enemy_num);
+        config().blackboard->set("sentry_hp", sentry_hp);
+        config().blackboard->set("is_transfering", is_transfering);
+        config().blackboard->set("is_bullet_low", is_bullet_low);
 
-        setOutput("map_data", latest_map);
-        setOutput("robot_pose", latest_odom);
-        setOutput("map_ready", true);
-        setOutput("is_out_of_center", is_out_of_center);
+        config().blackboard->set("map_data", latest_map);
+        config().blackboard->set("robot_pose", latest_odom);
+        config().blackboard->set("map_ready", true);
+        config().blackboard->set("is_out_of_center", is_out_of_center);
 
         return BT::NodeStatus::SUCCESS;
     }
