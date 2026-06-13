@@ -25,6 +25,7 @@ find_package(nav2_util REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(sensor_msgs REQUIRED) 
 find_package(tf2 REQUIRED)
+find_package(example_interfaces REQUIRED)
 
 include_directories(
   include
@@ -48,6 +49,7 @@ set(dependencies
   robot_msgs
   sensor_msgs  
   tf2    
+  example_interfaces
 )
 
 set(SERIAL_PRO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../serialPro)

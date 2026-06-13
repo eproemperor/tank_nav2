@@ -11,52 +11,76 @@ namespace nav2_behavior_tree
         config().blackboard->get<uint64_t>("Password2", Password2);
         config().blackboard->get<int64_t>("Password_rec", Password_rec);
         config().blackboard->get<int>("sendpassmode", sendpasmode);
+        config().blackboard->get<int>("enemy_num", enemy_num);
+        config().blackboard->get<double>("star_x", star_x);
+        config().blackboard->get<double>("star_y", star_y);
+        config().blackboard->get<bool>("sentry_is_out_of_center", sentry_is_out_of_center);
+        config().blackboard->get<double>("sentry_x", sentry_x);
+        config().blackboard->get<double>("sentry_y", sentry_y);
+        last_enemy_num = enemy_num;
+
+        //Pos_passward = node_->create_publisher<int64_t>(
+        //    "/pose",
+        //    10);
+        //RCLCPP_INFO(node_->get_logger(), "速度重映射");
     }
 
     BT::NodeStatus RSendPassward::tick()
     {
-        getInput<int>("sendpassmode", sendpasmode);
+
+        config().blackboard->set("sendpassmode", sendpasmode);
+    }
+
+    void RSendPassward::updatemsg()
+    {
+        config().blackboard->get<int>("sendpassmode", sendpasmode);
+        config().blackboard->get<int>("enemy_num", enemy_num);
+        config().blackboard->get<double>("star_x", star_x);
+        config().blackboard->get<double>("star_y", star_y);
+        config().blackboard->get<bool>("sentry_is_out_of_center", sentry_is_out_of_center);
+        config().blackboard->get<double>("sentry_x", sentry_x);
+        config().blackboard->get<double>("sentry_y", sentry_y);
+    }
+
+    void RSendPassward::send()
+    {
         switch (sendpasmode)
         {
-        case 0:
+        case 1:
             RobotMsgProcess_.receive_password();
             Password1 = RobotMsgProcess_.getPassword1();
             config().blackboard->set("Password1", Password1);
-            sendpasmode++;
-            config().blackboard->set("sendpassmode", sendpasmode);
             break;
-        case 1:
+        case 2:
             RobotMsgProcess_.receive_password();
             Password2 = RobotMsgProcess_.getPassword2();
             config().blackboard->set("Password2", Password2);
-            sendpasmode++;
-            config().blackboard->set("sendpassmode", sendpasmode);
-            break;
-
-        case 2:
             RobotMsgProcess_.send_password(Password1, Password2);
-            sendpasmode++;
+            int i = 0;
             RobotMsgProcess_.receive_password();
             Password_rec = RobotMsgProcess_.getPassword_rec();
             config().blackboard->set("Password_rec", Password_rec);
-            config().blackboard->set("sendpassmode", sendpasmode);
             break;
-        case 3:
-            RobotMsgProcess_.send_password(Password_rec);
-            sendpasmode++;
-            config().blackboard->set("sendpassmode", sendpasmode);
-            break;
-        default:
-            return BT::NodeStatus::SUCCESS;
+
+        //case 3:
+
+            //break;
         }
-        if (sendpasmode <= 3)
+    }
+
+    void RSendPassward::calsendmode()
+    {
+        if (enemy_num != last_enemy_num)
         {
-            return BT::NodeStatus::RUNNING;
+            sendpasmode++;
+            enemy_num == last_enemy_num;
         }
-        return BT::NodeStatus::SUCCESS;
+        if (abs((sentry_x - star_x)) < 1.0)
+        {
+            sendpasmode = 3;
+        }
     }
 }
-
 BT_REGISTER_NODES(factory)
 {
     factory.registerNodeType<nav2_behavior_tree::RSendPassward>("RSendPassward");

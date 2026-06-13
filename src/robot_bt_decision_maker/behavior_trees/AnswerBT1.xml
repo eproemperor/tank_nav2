@@ -28,5 +28,5 @@
             <input_port default="{sendpasmode}" name="sendpasmode"/>
         </Action>
     </TreeNodesModel>
-    <!-- 报错： Exception when loading BT: NavigateToPose is not a registered node, nor a Subtree-->
+    <!-- ////////// -->
 </root>

@@ -67,7 +67,7 @@ robot_bt_decision_maker_node:
       loop_duration_in_millisec: 100
       server_timeout_in_millisec: 1000
       transform_tolerance: 0.15
-      bt_xml_filename: "/behavior_trees/test.xml"  # 这个xml自定义
+      bt_xml_filename: "/behavior_trees/AnswerBT.xml"  # 这个xml自定义
       plugin_lib_names: [
         "nav2_navigate_through_poses_action_bt_node",
         "nav2_updatemapinfo_node_bt_node",
