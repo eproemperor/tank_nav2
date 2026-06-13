@@ -1,0 +1,5 @@
+cmake-build-debug/*
+# Build and log directories
+install/
+build/
+log/
