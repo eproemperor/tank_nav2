@@ -45,7 +45,7 @@ namespace nav2_behavior_tree
         rclcpp::Node::SharedPtr node_;
         rclcpp::Publisher<example_interfaces::msg::Int64>::SharedPtr Pos_passward;
         messageprocess::RobotMsgProcess RobotMsgProcess_;
-
+        example_interfaces::msg::Int64 pass;
         void updatemsg();
         void send();
         void calsendmode();

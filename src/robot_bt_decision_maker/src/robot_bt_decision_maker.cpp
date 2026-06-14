@@ -117,6 +117,7 @@ DecisionMakerNode::DecisionMakerNode(std::string name) : Node(name)
     blackboard_->set<double>("navvelre", navvelre);
     blackboard_->set<double>("goal_x", goal_x);
     blackboard_->set<double>("goal_y", goal_y);
+    blackboard_->set<std::chrono::milliseconds>("wait_for_service_timeout", std::chrono::milliseconds(1000));
 
     if (!loadBehaviorTree(bt_xml_filename_, blackboard_))
     {
@@ -169,16 +170,16 @@ bool DecisionMakerNode::loadBehaviorTree(const std::string &bt_xml_filename, BT:
     // Create the Behavior Tree from the XML input
     try
     {
-        BT::BehaviorTreeFactory factory;
+        //BT::BehaviorTreeFactory factory;
 
-        factory.registerNodeType<nav2_behavior_tree::UpdateMapinfo>("UpdateMapinfo");
-        factory.registerNodeType<nav2_behavior_tree::IfGameStart>("IfGameStart");
-        factory.registerNodeType<nav2_behavior_tree::Gobase>("GoBase");
-        factory.registerNodeType<nav2_behavior_tree::Navvelremap>("Navvelremap");
+        //factory.registerNodeType<nav2_behavior_tree::UpdateMapinfo>("UpdateMapinfo");
+        //factory.registerNodeType<nav2_behavior_tree::IfGameStart>("IfGameStart");
+        //factory.registerNodeType<nav2_behavior_tree::Gobase>("GoBase");
+        //factory.registerNodeType<nav2_behavior_tree::Navvelremap>("Navvelremap");
         //factory.registerNodeType<nav2_behavior_tree::RSendPassward>("RSendPassward");
         //factory.registerNodeType<nav2_behavior_tree::Fire>("Fire");
 
-        tree_ = factory.createTreeFromFile(bt_xml_filename, blackboard);
+        tree_ = bt_->createTreeFromFile(bt_xml_filename, blackboard);
 
         for (auto &blackboard : tree_.blackboard_stack)
         {
@@ -267,6 +268,7 @@ bool DecisionMakerNode::loadBehaviorTree(const std::string &bt_xml_filename, BT:
             blackboard_->set<double>("navvelre", navvelre);
             blackboard_->set<double>("goal_x", goal_x);
             blackboard_->set<double>("goal_y", goal_y);
+            blackboard_->set<std::chrono::milliseconds>("wait_for_service_timeout", std::chrono::milliseconds(1000));
         }
     }
     catch (const std::exception &e)

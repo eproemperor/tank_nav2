@@ -82,6 +82,17 @@ void PurePursuitController::configure(
   transform_tolerance_ = rclcpp::Duration::from_seconds(transform_tolerance);
 
   global_pub_ = node->create_publisher<nav_msgs::msg::Path>("received_global_plan", 1);
+  
+  // 新增：创建位姿发布器
+  pose_pub_ = node->create_publisher<geometry_msgs::msg::Pose2D>("/pose", 10);
+  
+  // 新增：初始化积分位姿
+  integrated_pose_.x = 0.0;
+  integrated_pose_.y = 0.0;
+  integrated_pose_.theta = 0.0;
+  last_pose_time_ = node->now();
+  
+  RCLCPP_INFO(logger_, "PurePursuitController 已配置，将发布 /pose 话题");
 }
 
 void PurePursuitController::cleanup()
@@ -91,6 +102,7 @@ void PurePursuitController::cleanup()
     "Cleaning up controller: %s of type pure_pursuit_controller::PurePursuitController",
     plugin_name_.c_str());
   global_pub_.reset();
+  pose_pub_.reset();  // 新增
 }
 
 void PurePursuitController::activate()
@@ -100,6 +112,7 @@ void PurePursuitController::activate()
     "Activating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
     plugin_name_.c_str(),plugin_name_.c_str());
   global_pub_->on_activate();
+  pose_pub_->on_activate();  // 新增
 }
 
 void PurePursuitController::deactivate()
@@ -109,12 +122,59 @@ void PurePursuitController::deactivate()
     "Dectivating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
     plugin_name_.c_str(),plugin_name_.c_str());
   global_pub_->on_deactivate();
+  pose_pub_->on_deactivate();  // 新增
 }
 
 void PurePursuitController::setSpeedLimit(const double& speed_limit, const bool& percentage)
 {
   (void) speed_limit;
   (void) percentage;
+}
+
+
+
+// 新增：更新并发布位姿
+void PurePursuitController::updateAndPublishPose(
+  const geometry_msgs::msg::PoseStamped &pose,
+  const geometry_msgs::msg::Twist &velocity)
+{
+  (void)pose;
+  rclcpp::Time current_time = clock_->now();
+  
+  // 计算时间差
+  double dt = (current_time - last_pose_time_).seconds();
+  
+  // 限制最大时间差
+  if (dt > 0.1) {
+    dt = 0.1;
+  }
+  
+  if (dt < 0.0001) {
+    last_pose_time_ = current_time;
+    return;
+  }
+  
+  // 获取速度
+  double linear_vel = velocity.linear.x;
+  double angular_vel = velocity.angular.z;
+  
+  // 使用运动学模型更新位姿（参考 navvelremap）
+  integrated_pose_.x += linear_vel * cos(integrated_pose_.theta) * dt;
+  integrated_pose_.y += linear_vel * sin(integrated_pose_.theta) * dt;
+  integrated_pose_.theta += angular_vel * dt;
+  
+  // 规范化角度到 [-π, π]
+  while (integrated_pose_.theta > M_PI) {
+    integrated_pose_.theta -= 2 * M_PI;
+  }
+  while (integrated_pose_.theta < -M_PI) {
+    integrated_pose_.theta += 2 * M_PI;
+  }
+  
+  last_pose_time_ = current_time;
+  
+  // 发布位姿
+  pose_pub_->publish(integrated_pose_);
 }
 
 geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
@@ -124,6 +184,9 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
 {
   (void)velocity;
   (void)goal_checker;
+
+  // 新增：更新并发布位姿
+  updateAndPublishPose(pose, velocity);
 
   auto transformed_plan = transformGlobalPlan(pose);
 

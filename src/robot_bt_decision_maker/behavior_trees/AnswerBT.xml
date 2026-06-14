@@ -1,32 +1,38 @@
 <?xml version="1.0"?>
 <root main_tree_to_execute="BehaviorTree">
-    <!-- ////////// -->
+    
     <BehaviorTree ID="BehaviorTree">
-        <ReactiveSequence>
-            <Action ID="UpdateMapinfo" sendpasmode="{sendpasmode}"/>
-            <Condition ID="IfGameStart" startflag="{startflag}"/>
-            <Action ID="GoBase" goal=""/>
-            <Action ID="NavigateToPose" goal="{goal}"/>
-            <Condition ID="Navvelremap" navvelre="{navvelre}"/>
-        </ReactiveSequence>
+        <Sequence name="导航主序列">
+            
+            <UpdateMapinfo name="更新地图" sendpasmode="{sendpasmode}" />
+            
+            <IfGameStart name="检查开始" startflag="{startflag}" />
+            
+            
+            <GoBase name="决策目标" goal="{goal}" />
+            
+            <NavigateToPose name="导航到目标" goal="{goal}" />
+            
+        </Sequence>
     </BehaviorTree>
-    <!-- ////////// -->
+    
     <TreeNodesModel>
-        <Action ID="GoBase">
-            <output_port name="goal"/>
-        </Action>
-        <Condition ID="IfGameStart">
-            <output_port name="startflag"/>
-        </Condition>
-        <Action ID="NavigateToPose">
-            <input_port default="{goal}" name="goal">Goal</input_port>
-        </Action>
-        <Condition ID="Navvelremap">
-            <output_port default="{navvelre}" name="navvelre"/>
-        </Condition>
         <Action ID="UpdateMapinfo">
-            <input_port default="{sendpasmode}" name="sendpasmode"/>
+            <input_port name="sendpasmode" default="0"/>
+        </Action>
+        
+        <Condition ID="IfGameStart">
+            <input_port name="startflag" default="false"/>
+        </Condition>
+        
+        
+        <Action ID="GoBase">
+            <output_port name="goal" type="geometry_msgs::msg::PoseStamped"/>
+        </Action>
+        
+        <Action ID="NavigateToPose">
+            <input_port name="goal" type="geometry_msgs::msg::PoseStamped"/>
         </Action>
     </TreeNodesModel>
-    <!-- 报错： Exception when loading BT: NavigateToPose is not a registered node, nor a Subtree-->
+    
 </root>

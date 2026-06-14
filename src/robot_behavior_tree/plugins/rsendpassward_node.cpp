@@ -19,10 +19,10 @@ namespace nav2_behavior_tree
         config().blackboard->get<double>("sentry_y", sentry_y);
         last_enemy_num = enemy_num;
 
-        //Pos_passward = node_->create_publisher<int64_t>(
-        //    "/pose",
-        //    10);
-        //RCLCPP_INFO(node_->get_logger(), "速度重映射");
+        Pos_passward = node_->create_publisher<example_interfaces::msg::Int64>(
+            "/password",
+            10);
+        RCLCPP_INFO(node_->get_logger(), "速度重映射");
     }
 
     BT::NodeStatus RSendPassward::tick()
@@ -56,15 +56,16 @@ namespace nav2_behavior_tree
             Password2 = RobotMsgProcess_.getPassword2();
             config().blackboard->set("Password2", Password2);
             RobotMsgProcess_.send_password(Password1, Password2);
-            int i = 0;
+
             RobotMsgProcess_.receive_password();
             Password_rec = RobotMsgProcess_.getPassword_rec();
             config().blackboard->set("Password_rec", Password_rec);
             break;
 
-        //case 3:
-
-            //break;
+        case 3:
+            pass.data = Password_rec;
+            Pos_passward->publish(RSendPassward::pass);
+            break;
         }
     }
 
