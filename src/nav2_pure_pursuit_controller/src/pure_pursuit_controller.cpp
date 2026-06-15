@@ -1,376 +1,198 @@
-/*
- * SPDX-License-Identifier: BSD-3-Clause
- *
- *  Author(s): Shrijit Singh <shrijitsingh99@gmail.com>
- *  Contributor: Pham Cong Trang <phamcongtranghd@gmail.com>
- *  Contributor: Mitchell Sayer <mitchell4408@gmail.com>
- */
-
-#include <algorithm>
-#include <string>
-#include <memory>
-#include <cmath>
-
-#include "nav2_core/exceptions.hpp"
-#include "nav2_util/node_utils.hpp"
 #include "nav2_pure_pursuit_controller/pure_pursuit_controller.hpp"
-#include "nav2_util/geometry_utils.hpp"
-
-using std::hypot;
-using std::min;
-using std::max;
-using std::abs;
-using nav2_util::declare_parameter_if_not_declared;
-using nav2_util::geometry_utils::euclidean_distance;
+#include "nav2_util/node_utils.hpp"
 
 namespace nav2_pure_pursuit_controller
 {
 
-/**
- * Find element in iterator with the minimum calculated value
- */
-template<typename Iter, typename Getter>
-Iter min_by(Iter begin, Iter end, Getter getCompareVal)
-{
-  if (begin == end) {
-    return end;
-  }
-  auto lowest = getCompareVal(*begin);
-  Iter lowest_it = begin;
-  for (Iter it = ++begin; it != end; ++it) {
-    auto comp = getCompareVal(*it);
-    if (comp < lowest) {
-      lowest = comp;
-      lowest_it = it;
-    }
-  }
-  return lowest_it;
-}
-
 void PurePursuitController::configure(
-  const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
-  std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
-  const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
+    const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent,
+    std::string name, 
+    const std::shared_ptr<tf2_ros::Buffer> tf,
+    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
 {
   node_ = parent;
-
   auto node = node_.lock();
-
-  costmap_ros_ = costmap_ros;
+  
   tf_ = tf;
   plugin_name_ = name;
   logger_ = node->get_logger();
   clock_ = node->get_clock();
+  costmap_ros_ = costmap_ros;
 
-  declare_parameter_if_not_declared(
-    node, plugin_name_ + ".desired_linear_vel", rclcpp::ParameterValue(0.2));
-  declare_parameter_if_not_declared(
-    node, plugin_name_ + ".lookahead_dist", rclcpp::ParameterValue(0.4));
-  declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_angular_vel", rclcpp::ParameterValue(1.0));
-  declare_parameter_if_not_declared(
-    node, plugin_name_ + ".transform_tolerance", rclcpp::ParameterValue(0.1));
-
-  node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
-  node->get_parameter(plugin_name_ + ".lookahead_dist", lookahead_dist_);
-  node->get_parameter(plugin_name_ + ".max_angular_vel", max_angular_vel_);
-  double transform_tolerance;
-  node->get_parameter(plugin_name_ + ".transform_tolerance", transform_tolerance);
-  transform_tolerance_ = rclcpp::Duration::from_seconds(transform_tolerance);
-
-  global_pub_ = node->create_publisher<nav_msgs::msg::Path>("received_global_plan", 1);
+  // 参数
+  nav2_util::declare_parameter_if_not_declared(node, plugin_name_ + ".speed_scale", rclcpp::ParameterValue(1.0));
+  nav2_util::declare_parameter_if_not_declared(node, plugin_name_ + ".publish_freq", rclcpp::ParameterValue(10.0));
   
-  // 创建位姿发布器，发布到 /pose 话题
+  node->get_parameter(plugin_name_ + ".speed_scale", speed_scale_);
+  node->get_parameter(plugin_name_ + ".publish_freq", publish_freq_);
+
+  // 创建发布器
   pose_pub_ = node->create_publisher<geometry_msgs::msg::Pose2D>("/pose", 10);
   
-  // 初始化积分位姿
-  integrated_pose_.x = 0.0;
-  integrated_pose_.y = 0.0;
-  integrated_pose_.theta = 0.0;
-  last_integration_time_ = node->now();
+  is_active_ = false;
   
-  RCLCPP_INFO(logger_, "PurePursuitController 已配置，将使用 cmd_vel 积分并发布到 /pose 话题");
+  // 创建定时器，按频率发布速度
+  double period = 1.0 / publish_freq_;
+  timer_ = node->create_wall_timer(
+      std::chrono::duration<double>(period),
+      [this]() {
+        if (is_active_ && !velocity_queue_.empty()) {
+          pose_pub_->publish(current_velocity_);
+        } else if (is_active_ && velocity_queue_.empty()) {
+          // 队列为空，发送零速度
+          geometry_msgs::msg::Pose2D zero_vel;
+          zero_vel.x = 0.0;
+          zero_vel.y = 0.0;
+          zero_vel.theta = 0.0;
+          pose_pub_->publish(zero_vel);
+          is_active_ = false;
+          RCLCPP_INFO(logger_, "所有速度指令执行完毕");
+        }
+      });
+  
+  RCLCPP_INFO(logger_, "控制器已配置: speed_scale=%.2f, publish_freq=%.1fHz", 
+              speed_scale_, publish_freq_);
+}
+
+void PurePursuitController::transformToMapFrame(double &x, double &y)
+{
+  // ROS坐标系 (X前, Y左) → 地图坐标系 (X右, Y下)
+  double original_x = x;
+  double original_y = y;
+  
+  x = original_y;      // ROS的Y变成地图的X
+  y = -original_x;     // ROS的X取反变成地图的Y
+}
+
+void PurePursuitController::parsePathToVelocities(const nav_msgs::msg::Path &path)
+{
+  // 清空队列
+  while (!velocity_queue_.empty()) {
+    velocity_queue_.pop();
+  }
+  
+  if (path.poses.size() < 2) {
+    RCLCPP_WARN(logger_, "路径点数不足2个，无法生成速度指令");
+    return;
+  }
+  
+  RCLCPP_INFO(logger_, "开始解析路径，共 %zu 个点", path.poses.size());
+  
+  // 遍历路径中的相邻点对
+  for (size_t i = 0; i < path.poses.size() - 1; i++) {
+    // 获取当前点和下一个点
+    double x1 = path.poses[i].pose.position.x;
+    double y1 = path.poses[i].pose.position.y;
+    double x2 = path.poses[i+1].pose.position.x;
+    double y2 = path.poses[i+1].pose.position.y;
+    
+    // 坐标转换到地图坐标系
+    transformToMapFrame(x1, y1);
+    transformToMapFrame(x2, y2);
+    
+    // 计算两点之间的差值（即速度方向）
+    double dx = x2 - x1;
+    double dy = y2 - y1;
+    
+    // 忽略朝向，只使用位置差值
+    geometry_msgs::msg::Pose2D vel_cmd;
+    vel_cmd.x = dx * speed_scale_;   // X轴速度
+    vel_cmd.y = dy * speed_scale_;   // Y轴速度
+    vel_cmd.theta = 0.0;              // 忽略朝向
+    
+    velocity_queue_.push(vel_cmd);
+    
+    RCLCPP_DEBUG(logger_, "段 %zu: (%.3f,%.3f) -> (%.3f,%.3f) → 速度 (%.3f,%.3f)", 
+                 i, x1, y1, x2, y2, vel_cmd.x, vel_cmd.y);
+  }
+  
+  RCLCPP_INFO(logger_, "路径解析完成，生成 %zu 个速度指令", velocity_queue_.size());
 }
 
 void PurePursuitController::cleanup()
 {
-  RCLCPP_INFO(
-    logger_,
-    "Cleaning up controller: %s of type pure_pursuit_controller::PurePursuitController",
-    plugin_name_.c_str());
-  global_pub_.reset();
+  RCLCPP_INFO(logger_, "清理控制器: %s", plugin_name_.c_str());
   pose_pub_.reset();
+  timer_.reset();
 }
 
 void PurePursuitController::activate()
 {
-  RCLCPP_INFO(
-    logger_,
-    "Activating controller: %s of type pure_pursuit_controller::PurePursuitController",
-    plugin_name_.c_str());
-  global_pub_->on_activate();
+  RCLCPP_INFO(logger_, "激活控制器: %s", plugin_name_.c_str());
   pose_pub_->on_activate();
+  is_active_ = true;
 }
 
 void PurePursuitController::deactivate()
 {
-  RCLCPP_INFO(
-    logger_,
-    "Deactivating controller: %s of type pure_pursuit_controller::PurePursuitController",
-    plugin_name_.c_str());
-  global_pub_->on_deactivate();
+  RCLCPP_INFO(logger_, "停用控制器: %s", plugin_name_.c_str());
   pose_pub_->on_deactivate();
+  is_active_ = false;
+  
+  // 清空队列
+  while (!velocity_queue_.empty()) {
+    velocity_queue_.pop();
+  }
 }
 
 void PurePursuitController::setSpeedLimit(const double& speed_limit, const bool& percentage)
 {
-  (void) speed_limit;
-  (void) percentage;
+  if (percentage) {
+    speed_scale_ = speed_scale_ * (speed_limit / 100.0);
+  } else {
+    speed_scale_ = speed_limit;
+  }
+  RCLCPP_WARN(logger_, "设置速度缩放系数: %.2f", speed_scale_);
 }
 
-// 只使用 cmd_vel 进行积分
-void PurePursuitController::updateAndPublishPose(const geometry_msgs::msg::Twist &cmd_vel)
+void PurePursuitController::setPlan(const nav_msgs::msg::Path &path)
 {
-  rclcpp::Time current_time = clock_->now();
+  RCLCPP_INFO(logger_, "收到新路径，包含 %zu 个点", path.poses.size());
   
-  // 计算时间差
-  double dt = (current_time - last_integration_time_).seconds();
+  // 解析路径生成速度指令队列
+  parsePathToVelocities(path);
   
-  // 限制最大时间差，防止跳跃过大
-  if (dt > 0.1) {
-    dt = 0.1;
+  // 如果有速度指令，立即开始执行第一个
+  if (!velocity_queue_.empty()) {
+    current_velocity_ = velocity_queue_.front();
+    velocity_queue_.pop();
+    is_active_ = true;
+    RCLCPP_INFO(logger_, "开始执行速度指令: vx=%.3f, vy=%.3f", 
+                current_velocity_.x, current_velocity_.y);
   }
-  
-  // 如果时间差太小，跳过本次积分但更新时间
-  if (dt < 0.0001) {
-    last_integration_time_ = current_time;
-    return;
-  }
-  
-  // 使用控制指令的速度进行积分
-  double linear_vel = cmd_vel.linear.x;
-  double angular_vel = cmd_vel.angular.z;
-  
-  // 调试输出（每50帧打印一次）
-  static int log_counter = 0;
-  if (++log_counter >= 50) {
-    log_counter = 0;
-    RCLCPP_INFO(logger_, 
-      "[积分] dt=%.4f, linear=%.3f, angular=%.3f, x=%.3f, y=%.3f, theta=%.3f",
-      dt, linear_vel, angular_vel, 
-      integrated_pose_.x, integrated_pose_.y, integrated_pose_.theta);
-  }
-  
-  // 运动学积分更新位姿
-  integrated_pose_.x += linear_vel * cos(integrated_pose_.theta) * dt;
-  integrated_pose_.y += linear_vel * sin(integrated_pose_.theta) * dt;
-  integrated_pose_.theta += angular_vel * dt;
-  
-  // 规范化角度到 [-π, π]
-  while (integrated_pose_.theta > M_PI) {
-    integrated_pose_.theta -= 2 * M_PI;
-  }
-  while (integrated_pose_.theta < -M_PI) {
-    integrated_pose_.theta += 2 * M_PI;
-  }
-  
-  last_integration_time_ = current_time;
-  // 发布积分位姿到 /pose 话题
-  pose_pub_->publish(integrated_pose_);
 }
 
 geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
-  const geometry_msgs::msg::PoseStamped & pose,
-  const geometry_msgs::msg::Twist & velocity,
-  nav2_core::GoalChecker * goal_checker)
+    const geometry_msgs::msg::PoseStamped &pose,
+    const geometry_msgs::msg::Twist &velocity,
+    nav2_core::GoalChecker *goal_checker)
 {
-  (void)velocity;  // 不使用实际速度
+  (void)pose;
+  (void)velocity;
   (void)goal_checker;
-
-  auto transformed_plan = transformGlobalPlan(pose);
-
-  // Find the first pose which is at a distance greater than the specified lookahed distance
-  auto goal_pose_it = std::find_if(
-    transformed_plan.poses.begin(), transformed_plan.poses.end(), [&](const auto & ps) {
-      return hypot(ps.pose.position.x, ps.pose.position.y) >= lookahead_dist_;
-    });
-
-  // If the last pose is still within lookahed distance, take the last pose
-  if (goal_pose_it == transformed_plan.poses.end()) {
-    goal_pose_it = std::prev(transformed_plan.poses.end());
-  }
-  auto goal_pose = goal_pose_it->pose;
-
-  double linear_vel, angular_vel;
-
-  // If the goal pose is in front of the robot then compute the velocity using the pure pursuit
-  // algorithm, else rotate with the max angular velocity until the goal pose is in front of the
-  // robot
-  if (goal_pose.position.x > 0) {
-    auto curvature = 2.0 * goal_pose.position.y /
-      (goal_pose.position.x * goal_pose.position.x + goal_pose.position.y * goal_pose.position.y);
-    linear_vel = desired_linear_vel_;
-    angular_vel = desired_linear_vel_ * curvature;
-  } else {
-    linear_vel = 0.0;
-    angular_vel = max_angular_vel_;
-  }
-
-  // 限制角速度范围
-  angular_vel = max(-1.0 * abs(max_angular_vel_), min(angular_vel, abs(max_angular_vel_)));
-
-  // Create and publish a TwistStamped message with the desired velocity
+  
   geometry_msgs::msg::TwistStamped cmd_vel;
-  cmd_vel.header.frame_id = pose.header.frame_id;
+  cmd_vel.header.frame_id = "base_link";
   cmd_vel.header.stamp = clock_->now();
-  cmd_vel.twist.linear.x = linear_vel;
-  cmd_vel.twist.angular.z = angular_vel;
-
-  // 使用计算出的 cmd_vel 进行积分并发布位姿到 /pose
-  updateAndPublishPose(cmd_vel.twist);
-
+  
+  // 这个方法需要返回 TwistStamped，但我们的速度发布是通过定时器单独处理的
+  // 所以这里只返回零速度
+  cmd_vel.twist.linear.x = 0.0;
+  cmd_vel.twist.linear.y = 0.0;
+  cmd_vel.twist.angular.z = 0.0;
+  
+  // 更新当前速度指令（由定时器发布到 /pose）
+  if (!velocity_queue_.empty() && is_active_) {
+    current_velocity_ = velocity_queue_.front();
+    current_velocity_.y=-current_velocity_.y;
+    velocity_queue_.pop();
+    RCLCPP_INFO(logger_, "下一个速度指令: vx=%.3f, vy=%.3f, 剩余 %zu 个", 
+                current_velocity_.x, current_velocity_.y, velocity_queue_.size());
+  }
+  
   return cmd_vel;
 }
 
-void PurePursuitController::setPlan(const nav_msgs::msg::Path & path)
-{
-  global_pub_->publish(path);
-  global_plan_ = path;
-}
+} // namespace nav2_pure_pursuit_controller
 
-nav_msgs::msg::Path
-PurePursuitController::transformGlobalPlan(
-  const geometry_msgs::msg::PoseStamped & pose)
-{
-  // Original implementation taken from nav2_dwb_controller
-
-  if (global_plan_.poses.empty()) {
-    throw nav2_core::PlannerException("Received plan with zero length");
-  }
-
-  // let's get the pose of the robot in the frame of the plan
-  geometry_msgs::msg::PoseStamped robot_pose;
-  if (!transformPose(
-      tf_, global_plan_.header.frame_id, pose,
-      robot_pose, transform_tolerance_))
-  {
-    throw nav2_core::PlannerException("Unable to transform robot pose into global plan's frame");
-  }
-
-  // We'll discard points on the plan that are outside the local costmap
-  nav2_costmap_2d::Costmap2D * costmap = costmap_ros_->getCostmap();
-  double dist_threshold = std::max(costmap->getSizeInCellsX(), costmap->getSizeInCellsY()) *
-    costmap->getResolution() / 2.0;
-
-  // First find the closest pose on the path to the robot
-  auto transformation_begin =
-    min_by(
-    global_plan_.poses.begin(), global_plan_.poses.end(),
-    [&robot_pose](const geometry_msgs::msg::PoseStamped & ps) {
-      return euclidean_distance(robot_pose, ps);
-    });
-
-  // From the closest point, look for the first point that's further then dist_threshold from the
-  // robot. These points are definitely outside of the costmap so we won't transform them.
-  auto transformation_end = std::find_if(
-    transformation_begin, end(global_plan_.poses),
-    [&](const auto & global_plan_pose) {
-      return euclidean_distance(robot_pose, global_plan_pose) > dist_threshold;
-    });
-
-  // Helper function for the transform below. Transforms a PoseStamped from global frame to local
-  auto transformGlobalPoseToLocal = [&](const auto & global_plan_pose) {
-      // We took a copy of the pose, let's lookup the transform at the current time
-      geometry_msgs::msg::PoseStamped stamped_pose, transformed_pose;
-      stamped_pose.header.frame_id = global_plan_.header.frame_id;
-      stamped_pose.header.stamp = pose.header.stamp;
-      stamped_pose.pose = global_plan_pose.pose;
-      transformPose(
-        tf_, costmap_ros_->getBaseFrameID(),
-        stamped_pose, transformed_pose, transform_tolerance_);
-      return transformed_pose;
-    };
-
-  // Transform the near part of the global plan into the robot's frame of reference.
-  nav_msgs::msg::Path transformed_plan;
-  std::transform(
-    transformation_begin, transformation_end,
-    std::back_inserter(transformed_plan.poses),
-    transformGlobalPoseToLocal);
-  transformed_plan.header.frame_id = costmap_ros_->getBaseFrameID();
-  transformed_plan.header.stamp = pose.header.stamp;
-
-  // Remove the portion of the global plan that we've already passed so we don't
-  // process it on the next iteration (this is called path pruning)
-  global_plan_.poses.erase(begin(global_plan_.poses), transformation_begin);
-  global_pub_->publish(transformed_plan);
-
-  if (transformed_plan.poses.empty()) {
-    throw nav2_core::PlannerException("Resulting plan has 0 poses in it.");
-  }
-
-  return transformed_plan;
-}
-
-bool PurePursuitController::transformPose(
-  const std::shared_ptr<tf2_ros::Buffer> tf,
-  const std::string frame,
-  const geometry_msgs::msg::PoseStamped & in_pose,
-  geometry_msgs::msg::PoseStamped & out_pose,
-  const rclcpp::Duration & transform_tolerance
-) const
-{
-  // Implementation taken as is from nav_2d_utils in nav2_dwb_controller
-
-  if (in_pose.header.frame_id == frame) {
-    out_pose = in_pose;
-    return true;
-  }
-
-  try {
-    tf->transform(in_pose, out_pose, frame);
-    return true;
-  } catch (tf2::ExtrapolationException & ex) {
-    auto transform = tf->lookupTransform(
-      frame,
-      in_pose.header.frame_id,
-      tf2::TimePointZero
-    );
-    if (
-      (rclcpp::Time(in_pose.header.stamp) - rclcpp::Time(transform.header.stamp)) >
-      transform_tolerance)
-    {
-      RCLCPP_ERROR(
-        rclcpp::get_logger("tf_help"),
-        "Transform data too old when converting from %s to %s",
-        in_pose.header.frame_id.c_str(),
-        frame.c_str()
-      );
-      RCLCPP_ERROR(
-        rclcpp::get_logger("tf_help"),
-        "Data time: %ds %uns, Transform time: %ds %uns",
-        in_pose.header.stamp.sec,
-        in_pose.header.stamp.nanosec,
-        transform.header.stamp.sec,
-        transform.header.stamp.nanosec
-      );
-      return false;
-    } else {
-      tf2::doTransform(in_pose, out_pose, transform);
-      return true;
-    }
-  } catch (tf2::TransformException & ex) {
-    RCLCPP_ERROR(
-      rclcpp::get_logger("tf_help"),
-      "Exception in transformPose: %s",
-      ex.what()
-    );
-    return false;
-  }
-  return false;
-}
-
-}  // namespace nav2_pure_pursuit_controller
-
-// Register this controller as a nav2_core plugin
 PLUGINLIB_EXPORT_CLASS(nav2_pure_pursuit_controller::PurePursuitController, nav2_core::Controller)
