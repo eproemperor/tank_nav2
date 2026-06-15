@@ -63,16 +63,15 @@ protected:
   // 速度指令队列
   std::queue<geometry_msgs::msg::Pose2D> velocity_queue_;
   
-  // 当前正在执行的速度指令
+  // 当前速度
   geometry_msgs::msg::Pose2D current_velocity_;
   
   // 定时器
   rclcpp::TimerBase::SharedPtr timer_;
   
-  // 发布器
+  // 发布器（发送速度到 /pose）
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Pose2D>> pose_pub_;
   
-  // 是否正在执行
   bool is_active_;
 };
 
