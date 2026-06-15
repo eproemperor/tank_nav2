@@ -56,8 +56,8 @@ namespace nav2_pure_pursuit_controller
         geometry_msgs::msg::PoseStamped &out_pose,
         const rclcpp::Duration &transform_tolerance) const;
 
-    // 新增：更新并发布位姿
-    void updateAndPublishPose(const geometry_msgs::msg::PoseStamped &pose, const geometry_msgs::msg::Twist &velocity);
+    // 使用 cmd_vel 更新并发布积分位姿
+    void updateAndPublishPose(const geometry_msgs::msg::Twist &cmd_vel);
 
     rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
     std::shared_ptr<tf2_ros::Buffer> tf_;
@@ -74,12 +74,12 @@ namespace nav2_pure_pursuit_controller
     nav_msgs::msg::Path global_plan_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;
 
-    // 新增：位姿发布器
+    // 位姿发布器 - 发布到 /pose 话题
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Pose2D>> pose_pub_;
     
-    // 新增：积分位姿
+    // 积分位姿
     geometry_msgs::msg::Pose2D integrated_pose_;
-    rclcpp::Time last_pose_time_;
+    rclcpp::Time last_integration_time_;
   };
 
 } // namespace nav2_pure_pursuit_controller

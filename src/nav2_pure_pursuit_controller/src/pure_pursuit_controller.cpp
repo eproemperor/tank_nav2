@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <string>
 #include <memory>
+#include <cmath>
 
 #include "nav2_core/exceptions.hpp"
 #include "nav2_util/node_utils.hpp"
@@ -62,17 +63,13 @@ void PurePursuitController::configure(
   clock_ = node->get_clock();
 
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".desired_linear_vel", rclcpp::ParameterValue(
-      0.2));
+    node, plugin_name_ + ".desired_linear_vel", rclcpp::ParameterValue(0.2));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".lookahead_dist",
-    rclcpp::ParameterValue(0.4));
+    node, plugin_name_ + ".lookahead_dist", rclcpp::ParameterValue(0.4));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_angular_vel", rclcpp::ParameterValue(
-      1.0));
+    node, plugin_name_ + ".max_angular_vel", rclcpp::ParameterValue(1.0));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".transform_tolerance", rclcpp::ParameterValue(
-      0.1));
+    node, plugin_name_ + ".transform_tolerance", rclcpp::ParameterValue(0.1));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
   node->get_parameter(plugin_name_ + ".lookahead_dist", lookahead_dist_);
@@ -83,16 +80,16 @@ void PurePursuitController::configure(
 
   global_pub_ = node->create_publisher<nav_msgs::msg::Path>("received_global_plan", 1);
   
-  // 新增：创建位姿发布器
+  // 创建位姿发布器，发布到 /pose 话题
   pose_pub_ = node->create_publisher<geometry_msgs::msg::Pose2D>("/pose", 10);
   
-  // 新增：初始化积分位姿
+  // 初始化积分位姿
   integrated_pose_.x = 0.0;
   integrated_pose_.y = 0.0;
   integrated_pose_.theta = 0.0;
-  last_pose_time_ = node->now();
+  last_integration_time_ = node->now();
   
-  RCLCPP_INFO(logger_, "PurePursuitController 已配置，将发布 /pose 话题");
+  RCLCPP_INFO(logger_, "PurePursuitController 已配置，将使用 cmd_vel 积分并发布到 /pose 话题");
 }
 
 void PurePursuitController::cleanup()
@@ -102,27 +99,27 @@ void PurePursuitController::cleanup()
     "Cleaning up controller: %s of type pure_pursuit_controller::PurePursuitController",
     plugin_name_.c_str());
   global_pub_.reset();
-  pose_pub_.reset();  // 新增
+  pose_pub_.reset();
 }
 
 void PurePursuitController::activate()
 {
   RCLCPP_INFO(
     logger_,
-    "Activating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
-    plugin_name_.c_str(),plugin_name_.c_str());
+    "Activating controller: %s of type pure_pursuit_controller::PurePursuitController",
+    plugin_name_.c_str());
   global_pub_->on_activate();
-  pose_pub_->on_activate();  // 新增
+  pose_pub_->on_activate();
 }
 
 void PurePursuitController::deactivate()
 {
   RCLCPP_INFO(
     logger_,
-    "Dectivating controller: %s of type pure_pursuit_controller::PurePursuitController\"  %s",
-    plugin_name_.c_str(),plugin_name_.c_str());
+    "Deactivating controller: %s of type pure_pursuit_controller::PurePursuitController",
+    plugin_name_.c_str());
   global_pub_->on_deactivate();
-  pose_pub_->on_deactivate();  // 新增
+  pose_pub_->on_deactivate();
 }
 
 void PurePursuitController::setSpeedLimit(const double& speed_limit, const bool& percentage)
@@ -131,34 +128,40 @@ void PurePursuitController::setSpeedLimit(const double& speed_limit, const bool&
   (void) percentage;
 }
 
-
-
-// 新增：更新并发布位姿
-void PurePursuitController::updateAndPublishPose(
-  const geometry_msgs::msg::PoseStamped &pose,
-  const geometry_msgs::msg::Twist &velocity)
+// 只使用 cmd_vel 进行积分
+void PurePursuitController::updateAndPublishPose(const geometry_msgs::msg::Twist &cmd_vel)
 {
-  (void)pose;
   rclcpp::Time current_time = clock_->now();
   
   // 计算时间差
-  double dt = (current_time - last_pose_time_).seconds();
+  double dt = (current_time - last_integration_time_).seconds();
   
-  // 限制最大时间差
+  // 限制最大时间差，防止跳跃过大
   if (dt > 0.1) {
     dt = 0.1;
   }
   
+  // 如果时间差太小，跳过本次积分但更新时间
   if (dt < 0.0001) {
-    last_pose_time_ = current_time;
+    last_integration_time_ = current_time;
     return;
   }
   
-  // 获取速度
-  double linear_vel = velocity.linear.x;
-  double angular_vel = velocity.angular.z;
+  // 使用控制指令的速度进行积分
+  double linear_vel = cmd_vel.linear.x;
+  double angular_vel = cmd_vel.angular.z;
   
-  // 使用运动学模型更新位姿（参考 navvelremap）
+  // 调试输出（每50帧打印一次）
+  static int log_counter = 0;
+  if (++log_counter >= 50) {
+    log_counter = 0;
+    RCLCPP_INFO(logger_, 
+      "[积分] dt=%.4f, linear=%.3f, angular=%.3f, x=%.3f, y=%.3f, theta=%.3f",
+      dt, linear_vel, angular_vel, 
+      integrated_pose_.x, integrated_pose_.y, integrated_pose_.theta);
+  }
+  
+  // 运动学积分更新位姿
   integrated_pose_.x += linear_vel * cos(integrated_pose_.theta) * dt;
   integrated_pose_.y += linear_vel * sin(integrated_pose_.theta) * dt;
   integrated_pose_.theta += angular_vel * dt;
@@ -171,9 +174,8 @@ void PurePursuitController::updateAndPublishPose(
     integrated_pose_.theta += 2 * M_PI;
   }
   
-  last_pose_time_ = current_time;
-  
-  // 发布位姿
+  last_integration_time_ = current_time;
+  // 发布积分位姿到 /pose 话题
   pose_pub_->publish(integrated_pose_);
 }
 
@@ -182,11 +184,8 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
   const geometry_msgs::msg::Twist & velocity,
   nav2_core::GoalChecker * goal_checker)
 {
-  (void)velocity;
+  (void)velocity;  // 不使用实际速度
   (void)goal_checker;
-
-  // 新增：更新并发布位姿
-  updateAndPublishPose(pose, velocity);
 
   auto transformed_plan = transformGlobalPlan(pose);
 
@@ -217,15 +216,18 @@ geometry_msgs::msg::TwistStamped PurePursuitController::computeVelocityCommands(
     angular_vel = max_angular_vel_;
   }
 
+  // 限制角速度范围
+  angular_vel = max(-1.0 * abs(max_angular_vel_), min(angular_vel, abs(max_angular_vel_)));
+
   // Create and publish a TwistStamped message with the desired velocity
   geometry_msgs::msg::TwistStamped cmd_vel;
   cmd_vel.header.frame_id = pose.header.frame_id;
   cmd_vel.header.stamp = clock_->now();
   cmd_vel.twist.linear.x = linear_vel;
-  cmd_vel.twist.angular.z = max(
-    -1.0 * abs(max_angular_vel_), min(
-      angular_vel, abs(
-        max_angular_vel_)));
+  cmd_vel.twist.angular.z = angular_vel;
+
+  // 使用计算出的 cmd_vel 进行积分并发布位姿到 /pose
+  updateAndPublishPose(cmd_vel.twist);
 
   return cmd_vel;
 }
@@ -240,7 +242,7 @@ nav_msgs::msg::Path
 PurePursuitController::transformGlobalPlan(
   const geometry_msgs::msg::PoseStamped & pose)
 {
-  // Original mplementation taken fron nav2_dwb_controller
+  // Original implementation taken from nav2_dwb_controller
 
   if (global_plan_.poses.empty()) {
     throw nav2_core::PlannerException("Received plan with zero length");
@@ -318,7 +320,7 @@ bool PurePursuitController::transformPose(
   const rclcpp::Duration & transform_tolerance
 ) const
 {
-  // Implementation taken as is fron nav_2d_utils in nav2_dwb_controller
+  // Implementation taken as is from nav_2d_utils in nav2_dwb_controller
 
   if (in_pose.header.frame_id == frame) {
     out_pose = in_pose;
