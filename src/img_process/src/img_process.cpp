@@ -274,7 +274,7 @@ void ImgProcess::publish_map_info() {
     robot_msgs::msg::MapInfoMsgs mapInfoMsgs;
     mapInfoMsgs.map_info = mapInfo;
     if (sentry_HP_ > 0)
-        RCLCPP_INFO(this->get_logger(), "sentry: x=%lf, y=%lf", mapInfoMsgs.map_info[SENTRY].pos.x, mapInfoMsgs.map_info[SENTRY].pos.y);
+        //RCLCPP_INFO(this->get_logger(), "sentry: x=%lf, y=%lf", mapInfoMsgs.map_info[SENTRY].pos.x, mapInfoMsgs.map_info[SENTRY].pos.y);
     mapInfoMsgs.enemy_num = enemy_num_;
     mapInfoMsgs.sentry_hp = sentry_HP_;
     // RCLCPP_INFO(get_logger(), "-------------- sentry_hp=%f -----------------", mapInfoMsgs.sentry_hp);

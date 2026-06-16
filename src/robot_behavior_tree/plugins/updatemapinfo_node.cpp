@@ -296,11 +296,11 @@ namespace nav2_behavior_tree
         is_bullet_low = msg->is_bullet_low;
 
         map_info_received = true;
+        RCLCPP_INFO(node_->get_logger(), "接受信息:x=%.2f, y=%.2f", sentry_x, sentry_y);
     };
 
     BT::NodeStatus UpdateMapinfo::tick()
     {
-        RCLCPP_INFO(node_->get_logger(), "节点1：数据进行更新");
         rclcpp::spin_some(node_);
         std::lock_guard<std::mutex> lock(data_mutex);
         if (!IsInit)

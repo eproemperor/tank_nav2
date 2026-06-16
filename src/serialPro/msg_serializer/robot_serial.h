@@ -100,7 +100,7 @@ namespace messageprocess
         void ls_f(const std::string &raw_data);
 
     public:
-        RobotMsgProcess(const std::string &port = "/dev/pts/3");
+        RobotMsgProcess(const std::string &port = "/dev/pts/2");
 
         ~RobotMsgProcess();
 
