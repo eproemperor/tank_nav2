@@ -42,6 +42,13 @@ public:
   void setPlan(const nav_msgs::msg::Path &path) override;
 
 protected:
+  // 方向指令结构体
+  struct DirectionCommand {
+    geometry_msgs::msg::Pose2D direction;
+    double duration;        // 运动持续时间（秒）
+    double distance;        // 运动距离
+  };
+  
   // 解析路径，生成速度指令队列
   void parsePathToVelocities(const nav_msgs::msg::Path &path);
   
@@ -53,6 +60,9 @@ protected:
   
   // 计算 PWM 参数
   void calculatePwmParams(double speed_ratio);
+
+  // 停止运动
+  void stopMovement();
 
   // ROS 相关成员
   rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
@@ -66,18 +76,23 @@ protected:
   double speed_ratio_;        // 速度比例 (0.0 ~ 1.0)
   double pwm_freq_;           // PWM 频率 (Hz)
   int pwm_resolution_;        // PWM 分辨率（一个周期的脉冲数）
+  double max_speed_;          // 最大速度 (像素/秒)
   
-  // 速度指令队列（方向指令：+1, -1, 0）
-  std::queue<geometry_msgs::msg::Pose2D> direction_queue_;
+  // 速度指令队列（使用 DirectionCommand）
+  std::queue<DirectionCommand> direction_queue_;
   
   // 当前方向指令
-  geometry_msgs::msg::Pose2D current_direction_;
+  DirectionCommand current_command_;
+  
+  // 运动控制状态
+  bool is_active_;
+  bool is_moving_;
+  rclcpp::Time command_start_time_;
   
   // PWM 控制
   rclcpp::TimerBase::SharedPtr pwm_timer_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Pose2D>> pose_pub_;
   
-  bool is_active_;
   int pwm_counter_;           // 当前周期内的脉冲计数
   int pwm_on_cycles_;         // 发送方向的脉冲数
   int pwm_off_cycles_;        // 发送0的脉冲数
