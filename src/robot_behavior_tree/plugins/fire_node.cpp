@@ -4,11 +4,15 @@ namespace nav2_behavior_tree
 {
     Fire::Fire(const std::string &action_name,
                const BT::NodeConfiguration &conf)
-        : BT::SyncActionNode(action_name, conf)
-        , serial_initialized_(false)
+        : BT::SyncActionNode(action_name, conf), serial_initialized_(false)
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
-
+        Pos_ = node_->create_publisher<geometry_msgs::msg::Pose2D>(
+            "/pose",
+            10);
+        Pos_send_ = node_->create_publisher<example_interfaces::msg::Bool>(
+            "/shoot",
+            10);
         config().blackboard->get<int>("sentry_name", sentry_name);
         config().blackboard->get<bool>("sentry_is_exist", sentry_is_exist);
         config().blackboard->get<double>("sentry_x", sentry_x);
@@ -25,19 +29,7 @@ namespace nav2_behavior_tree
         config().blackboard->get<double>("enemy_y", enemy_y);
 
         config().blackboard->get<int>("enemy_num", enemy_num);
-        
-        std::string serial_port = "/dev/pts/2";  
-        int baudrate = 115200;  
-        
-        if (RobotMsgProcess_.open())
-        {
-            serial_initialized_ = true;
-            RCLCPP_INFO(node_->get_logger(), "Serial port opened successfully: %s", serial_port.c_str());
-        }
-        else
-        {
-            RCLCPP_WARN(node_->get_logger(), "Failed to open serial port: %s", serial_port.c_str());
-        }
+        RCLCPP_INFO(node_->get_logger(), "攻击节点就绪");
     }
 
     Fire::~Fire()
@@ -49,40 +41,25 @@ namespace nav2_behavior_tree
     }
 
     double Fire::calangle(double &x1, double &y1, double &x2, double &y2)
-    {
+    {   
+        //弧度制
         double dx = x2 - x1;
-        double dy = y2 - y1;
+        double dy = -y2 + y1;
         double angle_rad = atan2(dy, dx);
-        double angle_deg = angle_rad * 180.0 / M_PI;
 
-        if (angle_deg < 0)
-        {
-            angle_deg += 360.0;
-        }
-        if ((angle_deg >= 0 && angle_deg < 45) || (angle_deg >= 315 && angle_deg < 360))
-        {
-            angle_deg = 0;   // 右
-        }
-        else if (angle_deg >= 45 && angle_deg < 135)
-        {
-            angle_deg = 90;  // 上
-        }
-        else if (angle_deg >= 135 && angle_deg < 225)
-        {
-            angle_deg = 180; // 左
-        }
-        else if (angle_deg >= 225 && angle_deg < 315)
-        {
-            angle_deg = 270; // 下
-        }
-        
-        return angle_deg;
+        return angle_rad;
     }
 
     void Fire::fire(double theta)
     {
-        RobotMsgProcess_.SendFireCommand(theta);
-        RCLCPP_INFO(node_->get_logger(), "Firing with angle: %.2f degrees", theta);
+        sleep(0.5);
+        Pose2D_.theta = theta;
+        Pose2D_.x = 0;
+        Pose2D_.y = 0;
+        Pos_->publish(Pose2D_);
+        sendbool.data = true;
+        Pos_send_->publish(sendbool);
+        RCLCPP_INFO(node_->get_logger(), "攻击角度: %.2f degrees", theta);
     }
 
     void Fire::updateposition()
@@ -102,35 +79,52 @@ namespace nav2_behavior_tree
         config().blackboard->get<int>("enemy_num", enemy_num);
     }
 
-    BT::NodeStatus Fire::tick()
+    bool Fire::calculatedistance()
     {
-        if (!serial_initialized_)
+        if (!Fire::enemy_num == 0)
         {
-            RCLCPP_ERROR(node_->get_logger(), "Serial port not initialized");
-            return BT::NodeStatus::FAILURE;
+            if (abs((sentry_x - enemy_x)) < 1 && abs((sentry_y - enemy_y)) < 1)
+            {
+                return true;
+            }
         }
-        
-        updateposition();
-
-        if (enemy_num != 0 && enemy_is_exist)
+        else if (abs((sentry_x - enemy_base_x)) < 2 && abs((sentry_y - enemy_base_y)) < 2)
         {
-            theta = calangle(sentry_x, sentry_y, enemy_x, enemy_y);
-            RCLCPP_INFO(node_->get_logger(), "Targeting enemy at (%.2f, %.2f), angle: %.2f", 
-                        enemy_x, enemy_y, theta);
-        }
-        else if (enemy_base_is_exist)
-        {
-            theta = calangle(sentry_x, sentry_y, enemy_base_x, enemy_base_y);
-            RCLCPP_INFO(node_->get_logger(), "Targeting enemy base at (%.2f, %.2f), angle: %.2f", 
-                        enemy_base_x, enemy_base_y, theta);
+            return true;
         }
         else
         {
-            RCLCPP_WARN(node_->get_logger(), "No target available to fire");
-            return BT::NodeStatus::FAILURE;
+            return FAIL;
         }
+    }
 
-        fire(theta);
+    BT::NodeStatus Fire::tick()
+    {
+        updateposition();
+        RCLCPP_INFO(node_->get_logger(), "攻击节点更新");
+        if (calculatedistance())
+        {
+            if (enemy_num != 0 && enemy_is_exist)
+            {
+                theta = calangle(sentry_x, sentry_y, enemy_x, enemy_y);
+                RCLCPP_INFO(node_->get_logger(), "计算敌人位置Targeting enemy at (%.2f, %.2f), angle: %.2f",
+                            enemy_x, enemy_y, theta);
+            }
+            else if (enemy_base_is_exist)
+            {
+                theta = calangle(sentry_x, sentry_y, enemy_base_x, enemy_base_y);
+                RCLCPP_INFO(node_->get_logger(), "计算基地位置Targeting enemy base at (%.2f, %.2f), angle: %.2f",
+                            enemy_base_x, enemy_base_y, theta);
+            }
+            else
+            {
+                RCLCPP_WARN(node_->get_logger(), "No target available to fire");
+                return BT::NodeStatus::FAILURE;
+            }
+
+            fire(theta);
+            RCLCPP_INFO(node_->get_logger(), "攻击已发送");
+        }
         return BT::NodeStatus::SUCCESS;
     }
 }

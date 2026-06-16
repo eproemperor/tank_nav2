@@ -1,38 +1,28 @@
 <?xml version="1.0"?>
 <root main_tree_to_execute="BehaviorTree">
-    
+    <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
         <Sequence name="导航主序列">
-            
-            <UpdateMapinfo name="更新地图" sendpasmode="{sendpasmode}" />
-            
-            <IfGameStart name="检查开始" startflag="{startflag}" />
-            
-            
-            <GoBase name="决策目标" goal="{goal}" />
-            
-            <NavigateToPose name="导航到目标" goal="{goal}" />
-            
+            <Action ID="UpdateMapinfo" name="更新地图" sendpasmode="{sendpasmode}"/>
+            <Condition ID="IfGameStart" name="检查开始" startflag="{startflag}"/>
+            <Action ID="Fire"/>
         </Sequence>
     </BehaviorTree>
-    
+    <!-- ////////// -->
     <TreeNodesModel>
-        <Action ID="UpdateMapinfo">
-            <input_port name="sendpasmode" default="0"/>
-        </Action>
-        
-        <Condition ID="IfGameStart">
-            <input_port name="startflag" default="false"/>
-        </Condition>
-        
-        
+        <Action ID="Fire"/>
         <Action ID="GoBase">
             <output_port name="goal" type="geometry_msgs::msg::PoseStamped"/>
         </Action>
-        
+        <Condition ID="IfGameStart">
+            <input_port default="false" name="startflag"/>
+        </Condition>
         <Action ID="NavigateToPose">
             <input_port name="goal" type="geometry_msgs::msg::PoseStamped"/>
         </Action>
+        <Action ID="UpdateMapinfo">
+            <input_port default="0" name="sendpasmode"/>
+        </Action>
     </TreeNodesModel>
-    
+    <!-- ////////// -->
 </root>

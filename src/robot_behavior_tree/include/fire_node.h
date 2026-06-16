@@ -4,6 +4,12 @@
 #include "robot_serial.h"
 #include <rclcpp/rclcpp.hpp>
 #include "behaviortree_cpp_v3/bt_factory.h"
+#include "nav_msgs/msg/occupancy_grid.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+#include "behaviortree_cpp_v3/bt_factory.h"
+#include "geometry_msgs/msg/pose2_d.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include"example_interfaces/msg/bool.hpp"
 
 namespace nav2_behavior_tree
 {
@@ -40,6 +46,7 @@ namespace nav2_behavior_tree
         void fire(double theta);
         void updateposition();
         double calangle(double &x1, double &y1, double &x2, double &y2);
+        bool calculatedistance();
 
         int enemy_num;
         double theta;
@@ -60,7 +67,13 @@ namespace nav2_behavior_tree
         double enemy_y;
 
         rclcpp::Node::SharedPtr node_;
+        geometry_msgs::msg::Pose2D direction;
+        rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr Pos_;
+        geometry_msgs::msg::Pose2D Pose2D_;
+        rclcpp::Time last_time_;  
         messageprocess::RobotMsgProcess RobotMsgProcess_;
+        rclcpp::Publisher<example_interfaces::msg::Bool>::SharedPtr Pos_send_;
+        example_interfaces::msg::Bool sendbool;
         bool serial_initialized_;
     };
 }
