@@ -45,8 +45,14 @@ protected:
   // 解析路径，生成速度指令队列
   void parsePathToVelocities(const nav_msgs::msg::Path &path);
   
-  // 坐标转换：ROS坐标系 → 你的地图坐标系 (X右, Y下)
+  // 坐标转换
   void transformToMapFrame(double &x, double &y);
+  
+  // PWM 定时器回调
+  void pwmTimerCallback();
+  
+  // 计算 PWM 参数
+  void calculatePwmParams(double speed_ratio);
 
   // ROS 相关成员
   rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
@@ -57,22 +63,25 @@ protected:
   rclcpp::Clock::SharedPtr clock_;
 
   // 参数
-  double speed_scale_;        // 速度缩放系数
-  double publish_freq_;       // 发布频率
+  double speed_ratio_;        // 速度比例 (0.0 ~ 1.0)
+  double pwm_freq_;           // PWM 频率 (Hz)
+  int pwm_resolution_;        // PWM 分辨率（一个周期的脉冲数）
   
-  // 速度指令队列
-  std::queue<geometry_msgs::msg::Pose2D> velocity_queue_;
+  // 速度指令队列（方向指令：+1, -1, 0）
+  std::queue<geometry_msgs::msg::Pose2D> direction_queue_;
   
-  // 当前速度
-  geometry_msgs::msg::Pose2D current_velocity_;
+  // 当前方向指令
+  geometry_msgs::msg::Pose2D current_direction_;
   
-  // 定时器
-  rclcpp::TimerBase::SharedPtr timer_;
-  
-  // 发布器（发送速度到 /pose）
+  // PWM 控制
+  rclcpp::TimerBase::SharedPtr pwm_timer_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Pose2D>> pose_pub_;
   
   bool is_active_;
+  int pwm_counter_;           // 当前周期内的脉冲计数
+  int pwm_on_cycles_;         // 发送方向的脉冲数
+  int pwm_off_cycles_;        // 发送0的脉冲数
+  bool sending_direction_;    // true=发送方向, false=发送0
 };
 
 } // namespace
