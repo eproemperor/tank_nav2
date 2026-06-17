@@ -5,6 +5,7 @@
 #include <memory>
 #include <cmath>
 #include <queue>
+#include <vector>
 
 #include "nav2_core/controller.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -25,7 +26,7 @@ public:
 
   void configure(
       const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent,
-      std::string name, 
+      std::string name,
       const std::shared_ptr<tf2_ros::Buffer> tf,
       const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
 
@@ -42,29 +43,19 @@ public:
   void setPlan(const nav_msgs::msg::Path &path) override;
 
 protected:
-  // 方向指令结构体
   struct DirectionCommand {
     geometry_msgs::msg::Pose2D direction;
-    double duration;        // 运动持续时间（秒）
-    double distance;        // 运动距离
+    double duration;
+    double distance;
+    double speed_ratio;     // 0~1
   };
-  
-  // 解析路径，生成速度指令队列
-  void parsePathToVelocities(const nav_msgs::msg::Path &path);
-  
-  // 坐标转换
-  void transformToMapFrame(double &x, double &y);
-  
-  // PWM 定时器回调
-  void pwmTimerCallback();
-  
-  // 计算 PWM 参数
-  void calculatePwmParams(double speed_ratio);
 
-  // 停止运动
+  void parsePathToVelocities(const nav_msgs::msg::Path &path);
+  void transformToMapFrame(double &x, double &y);
+  void pwmTimerCallback();
+  void calculatePwmParams(double speed_ratio);
   void stopMovement();
 
-  // ROS 相关成员
   rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::string plugin_name_;
@@ -72,31 +63,27 @@ protected:
   rclcpp::Logger logger_{rclcpp::get_logger("PurePursuitController")};
   rclcpp::Clock::SharedPtr clock_;
 
-  // 参数
-  double speed_ratio_;        // 速度比例 (0.0 ~ 1.0)
-  double pwm_freq_;           // PWM 频率 (Hz)
-  int pwm_resolution_;        // PWM 分辨率（一个周期的脉冲数）
-  double max_speed_;          // 最大速度 (像素/秒)
-  
-  // 速度指令队列（使用 DirectionCommand）
+  double speed_ratio_;
+  double pwm_freq_;
+  int pwm_resolution_;
+  double max_speed_;
+  double decel_distance_;   // 减速段长度（像素）
+
   std::queue<DirectionCommand> direction_queue_;
-  
-  // 当前方向指令
   DirectionCommand current_command_;
-  
-  // 运动控制状态
+
   bool is_active_;
   bool is_moving_;
   rclcpp::Time command_start_time_;
-  
-  // PWM 控制
+
   rclcpp::TimerBase::SharedPtr pwm_timer_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Pose2D>> pose_pub_;
-  
-  int pwm_counter_;           // 当前周期内的脉冲计数
-  int pwm_on_cycles_;         // 发送方向的脉冲数
-  int pwm_off_cycles_;        // 发送0的脉冲数
-  bool sending_direction_;    // true=发送方向, false=发送0
+
+  int pwm_counter_;
+  int pwm_on_cycles_;
+  int pwm_off_cycles_;
+  bool sending_direction_;
+  double current_speed_ratio_;
 };
 
 } // namespace
