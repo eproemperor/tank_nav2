@@ -146,7 +146,7 @@ namespace nav2_behavior_tree
         goal_.header.frame_id = "map";
         goal_.header.stamp = node_->now();
         config().blackboard->set("goal", goal_);
-        RCLCPP_INFO(node_->get_logger(), "GoBase: target type=%d, goal=(%.2f, %.2f)", type, goal_.pose.position.x, goal_.pose.position.y);
+        //RCLCPP_INFO(node_->get_logger(), "GoBase: target type=%d, goal=(%.2f, %.2f)", type, goal_.pose.position.x, goal_.pose.position.y);
 
         return BT::NodeStatus::SUCCESS;
     };

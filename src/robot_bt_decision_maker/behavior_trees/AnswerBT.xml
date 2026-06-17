@@ -5,8 +5,9 @@
         <ReactiveSequence>
             <Action ID="UpdateMapinfo" name="更新地图" sendpasmode="{sendpasmode}"/>
             <Condition ID="IfGameStart" name="检查开始" startflag="{startflag}"/>
-            <Action ID="GoBase" goal="{goal}" name="决策目标"/>
             <Action ID="Fire"/>
+            <Action ID="GoBase" goal="{goal}" name="决策目标"/>
+            <Action ID="RSendPassward"/>
             <Action ID="NavigateToPose" goal="{goal}" name="导航到目标"/>
         </ReactiveSequence>
     </BehaviorTree>
@@ -22,6 +23,7 @@
         <Action ID="NavigateToPose">
             <input_port name="goal" type="geometry_msgs::msg::PoseStamped"/>
         </Action>
+        <Action ID="RSendPassward"/>
         <Action ID="UpdateMapinfo">
             <input_port default="0" name="sendpasmode"/>
         </Action>

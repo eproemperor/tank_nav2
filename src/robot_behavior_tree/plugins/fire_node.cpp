@@ -30,7 +30,7 @@ namespace nav2_behavior_tree
         config().blackboard->get<bool>("enemy_is_exist", enemy_is_exist);
         config().blackboard->get<double>("enemy_x", enemy_x);
         config().blackboard->get<double>("enemy_y", enemy_y);
-        config().blackboard->get<bool>("is_bullet_low",is_bullet_low);
+        config().blackboard->get<bool>("is_bullet_low", is_bullet_low);
         config().blackboard->get<int>("enemy_num", enemy_num);
         RCLCPP_INFO(node_->get_logger(), "攻击节点就绪");
     }
@@ -44,14 +44,46 @@ namespace nav2_behavior_tree
     }
 
     double Fire::calangle(double &x1, double &y1, double &x2, double &y2)
-    {   
-        //弧度制
-        double dx = x2 - x1;
-        double dy = -y2 + y1;
-        double angle_rad = atan2(dy, dx);
+{
+    double dx = x2 - x1;
+    double dy = -y2 + y1; // y轴向上为正
+    double angle_rad = atan2(dy, dx);
 
-        return angle_rad;
+    // 归一化到 [-π, π]
+    while (angle_rad > M_PI)
+        angle_rad -= 2 * M_PI;
+    while (angle_rad < -M_PI)
+        angle_rad += 2 * M_PI;
+
+    const double eps = 5 * M_PI / 180; // 5°容差
+
+    double axis[4] = {0, M_PI / 2, M_PI, -M_PI / 2};
+    for (int i = 0; i < 4; i++) {
+        if (fabs(angle_rad - axis[i]) < eps) {
+            return axis[i]; // 在坐标轴容差内，返回坐标轴值
+        }
     }
+
+    // 再检查对角线方向
+    const double diag[4] = {M_PI / 4, 3 * M_PI / 4, -3 * M_PI / 4, -M_PI / 4};
+    for (int i = 0; i < 4; i++) {
+        if (fabs(angle_rad - diag[i]) < eps) {
+            return angle_rad; // 在对角线容差内，返回原值
+        }
+    }
+
+    // 最后，归类到最近的坐标轴
+    int best = 0;
+    double min_diff = fabs(angle_rad - axis[0]);
+    for (int i = 1; i < 4; i++) {
+        double diff = fabs(angle_rad - axis[i]);
+        if (diff < min_diff) {
+            min_diff = diff;
+            best = i;
+        }
+    }
+    return axis[best];
+}
 
     void Fire::fire(double theta)
     {
@@ -61,13 +93,10 @@ namespace nav2_behavior_tree
         Pose2D_.y = 0;
         sendbool.data = true;
         Pos_->publish(Pose2D_);
-        Pos_send_->publish(sendbool);
         Pos_angle->publish(Pose2D_);
         Pos_send_->publish(sendbool);
-        Pos_angle->publish(Pose2D_);
-        Pos_angle->publish(Pose2D_);
-        Pos_angle->publish(Pose2D_);
-        RCLCPP_INFO(node_->get_logger(), "攻击角度: %.2f degrees", theta);
+        Pos_send_->publish(sendbool);
+        // RCLCPP_INFO(node_->get_logger(), "攻击角度: %.2f degrees", theta);
     }
 
     void Fire::updateposition()
@@ -84,14 +113,14 @@ namespace nav2_behavior_tree
         config().blackboard->get<double>("enemy_x", enemy_x);
         config().blackboard->get<double>("enemy_y", enemy_y);
         config().blackboard->get<int>("enemy_num", enemy_num);
-        config().blackboard->get<bool>("is_bullet_low",is_bullet_low);
+        config().blackboard->get<bool>("is_bullet_low", is_bullet_low);
     }
 
     bool Fire::calculatedistance()
     {
         if (!Fire::enemy_num == 0)
         {
-            if (abs((sentry_x - enemy_x)) < 1 && abs((sentry_y - enemy_y)) < 1)
+            if (abs((sentry_x - enemy_x)) < 0.7 && abs((sentry_y - enemy_y)) < 0.7)
             {
                 return true;
             }
@@ -120,8 +149,8 @@ namespace nav2_behavior_tree
             else if (enemy_base_is_exist)
             {
                 theta = calangle(sentry_x, sentry_y, enemy_base_x, enemy_base_y);
-                RCLCPP_INFO(node_->get_logger(), "计算基地位置Targeting enemy base at (%.2f, %.2f), angle: %.2f",
-                            enemy_base_x, enemy_base_y, theta);
+                // RCLCPP_INFO(node_->get_logger(), "计算基地位置Targeting enemy base at (%.2f, %.2f), angle: %.2f",
+                //             enemy_base_x, enemy_base_y, theta);
             }
             else
             {
@@ -130,7 +159,7 @@ namespace nav2_behavior_tree
             }
 
             fire(theta);
-            RCLCPP_INFO(node_->get_logger(), "攻击已发送");
+            // RCLCPP_INFO(node_->get_logger(), "攻击已发送");
         }
         return BT::NodeStatus::SUCCESS;
     }

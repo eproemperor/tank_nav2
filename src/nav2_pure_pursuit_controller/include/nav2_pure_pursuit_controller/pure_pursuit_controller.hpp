@@ -55,7 +55,7 @@ protected:
   void pwmTimerCallback();
   void calculatePwmParams(double speed_ratio);
   void stopMovement();
-  void mapCallback(const geometry_msgs::msg::Pose2D::SharedPtr msg);
+  void angleCallback(const geometry_msgs::msg::Pose2D::SharedPtr msg);
 
   rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
@@ -63,6 +63,8 @@ protected:
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
   rclcpp::Logger logger_{rclcpp::get_logger("PurePursuitController")};
   rclcpp::Clock::SharedPtr clock_;
+
+  // 订阅器（使用 LifecycleNode 创建，而不是独立节点）
   rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr angle_sub_;
 
   double speed_ratio_;
@@ -86,6 +88,7 @@ protected:
   int pwm_off_cycles_;
   bool sending_direction_;
   double current_speed_ratio_;
+  double fire_angle_;  // 使用下划线后缀
 };
 
 } // namespace

@@ -8,7 +8,7 @@
 #include "behaviortree_cpp_v3/bt_factory.h"
 #include "robot_serial.h"
 #include "math.h"
-#include"example_interfaces/msg/int64.hpp"
+#include "example_interfaces/msg/int64.hpp"
 
 namespace nav2_behavior_tree
 {
@@ -31,10 +31,17 @@ namespace nav2_behavior_tree
         BT::NodeStatus tick() override;
 
     private:
+        // 密码数据
         uint64_t Password1;
         uint64_t Password2;
         int64_t Password_rec;
+
+        // 模式控制
         int sendpasmode = 0;
+        bool password1_received_ = false;   // 是否已接收片段1
+        bool password2_sent_ = false;       // 是否已发送片段并收到完整密码
+
+        // 黑板数据
         int enemy_num;
         int last_enemy_num = 2;
         double star_x;
@@ -42,14 +49,19 @@ namespace nav2_behavior_tree
         bool sentry_is_out_of_center;
         double sentry_x;
         double sentry_y;
+
+        // ROS 相关
         rclcpp::Node::SharedPtr node_;
         rclcpp::Publisher<example_interfaces::msg::Int64>::SharedPtr Pos_passward;
+
+        // 串口处理对象
         messageprocess::RobotMsgProcess RobotMsgProcess_;
-        example_interfaces::msg::Int64 pass;
+
+        // 内部方法
         void updatemsg();
         void send();
         void calsendmode();
     };
 }
 
-#endif // RSENDPASSWORD_NODE_H_
+#endif

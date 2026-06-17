@@ -21,6 +21,7 @@ void PurePursuitController::configure(
   logger_ = node->get_logger();
   clock_ = node->get_clock();
   costmap_ros_ = costmap_ros;
+  fire_angle_ = 0.0;  // 初始化角度
 
   rcl_interfaces::msg::ParameterDescriptor desc;
   desc.description = "Speed ratio (0.0 to 1.0)";
@@ -30,7 +31,7 @@ void PurePursuitController::configure(
   pwm_freq_ = node->declare_parameter<double>(plugin_name_ + ".pwm_freq", 50.0, desc);
 
   desc.description = "PWM resolution (pulses per cycle)";
-  pwm_resolution_ = node->declare_parameter<int>(plugin_name_ + ".pwm_resolution", 100, desc); // 降低分辨率，提高响应
+  pwm_resolution_ = node->declare_parameter<int>(plugin_name_ + ".pwm_resolution", 20, desc); // 改为20提高响应
 
   desc.description = "Maximum speed in pixels/second (hardware limit)";
   max_speed_ = node->declare_parameter<double>(plugin_name_ + ".max_speed", 300.0, desc);
@@ -42,7 +43,14 @@ void PurePursuitController::configure(
   pwm_resolution_ = std::max(10, pwm_resolution_);
   decel_distance_ = std::max(10.0, decel_distance_);
 
+  // 创建发布器
   pose_pub_ = node->create_publisher<geometry_msgs::msg::Pose2D>("/pose", 10);
+
+  // 【修正】使用 node 创建订阅器，而不是 angle_node_
+  angle_sub_ = node->create_subscription<geometry_msgs::msg::Pose2D>(
+      "/pose_angle",  // 确认话题名称是否正确
+      10,
+      std::bind(&PurePursuitController::angleCallback, this, std::placeholders::_1));
 
   is_active_ = false;
   is_moving_ = false;
@@ -60,6 +68,11 @@ void PurePursuitController::configure(
   RCLCPP_INFO(logger_, "  速度比例: %.2f (最大速度: %.0f px/s)", speed_ratio_, max_speed_);
   RCLCPP_INFO(logger_, "  减速距离: %.0f px", decel_distance_);
   RCLCPP_INFO(logger_, "  PWM频率: %.1f Hz, 分辨率: %d", pwm_freq_, pwm_resolution_);
+}
+
+void PurePursuitController::angleCallback(const geometry_msgs::msg::Pose2D::SharedPtr msg)
+{
+  fire_angle_ = msg->theta;
 }
 
 void PurePursuitController::calculatePwmParams(double speed_ratio)
@@ -82,7 +95,7 @@ void PurePursuitController::calculatePwmParams(double speed_ratio)
       pwm_on_cycles_ = pwm_resolution_ - 1;
     }
   }
-  RCLCPP_DEBUG(logger_, "PWM: ratio=%.2f, ON=%d, OFF=%d", speed_ratio, pwm_on_cycles_, pwm_off_cycles_);
+ // RCLCPP_DEBUG(logger_, "PWM: ratio=%.2f, ON=%d, OFF=%d", speed_ratio, pwm_on_cycles_, pwm_off_cycles_);
 }
 
 void PurePursuitController::transformToMapFrame(double &x, double &y)
@@ -97,7 +110,7 @@ void PurePursuitController::parsePathToVelocities(const nav_msgs::msg::Path &pat
   while (!direction_queue_.empty()) direction_queue_.pop();
 
   if (path.poses.size() < 2) {
-    RCLCPP_WARN(logger_, "路径点数不足2个");
+    //RCLCPP_WARN(logger_, "路径点数不足2个");
     return;
   }
 
@@ -135,8 +148,8 @@ void PurePursuitController::parsePathToVelocities(const nav_msgs::msg::Path &pat
   }
   if (simplified.size() < 2) simplified = points;
 
-  // 3. 等距插值（步长 10px，平衡精度与数量）
-  const double STEP = 10.0;
+  // 3. 等距插值（步长 15px，减少指令数）
+  const double STEP = 15.0;
   std::vector<std::pair<double, double>> interpolated;
   interpolated.push_back(simplified[0]);
   for (size_t i = 1; i < simplified.size(); ++i) {
@@ -160,16 +173,15 @@ void PurePursuitController::parsePathToVelocities(const nav_msgs::msg::Path &pat
     total_len += std::sqrt(dx*dx + dy*dy);
   }
   if (total_len < 1e-6) {
-    RCLCPP_WARN(logger_, "路径总长度接近0");
+    //RCLCPP_WARN(logger_, "路径总长度接近0");
     return;
   }
 
   // 5. 速度规划：全速 + 末端减速
-  double decel_dist = std::min(decel_distance_, total_len * 0.5); // 减速段长度
+  double decel_dist = std::min(decel_distance_, total_len * 0.5);
   double cruise_dist = total_len - decel_dist;
 
   double accumulated = 0.0;
-  //const double MIN_SPEED = 10.0; // 最小速度，避免停留
 
   for (size_t i = 1; i < interpolated.size(); ++i) {
     double dx = interpolated[i].first - interpolated[i-1].first;
@@ -177,21 +189,18 @@ void PurePursuitController::parsePathToVelocities(const nav_msgs::msg::Path &pat
     double seg_len = std::sqrt(dx*dx + dy*dy);
     if (seg_len < 1e-6) continue;
 
-    // 该段中点累计距离
     double mid_dist = accumulated + seg_len / 2.0;
 
     double ratio;
     if (mid_dist <= cruise_dist) {
-      // 巡航段：全速
       ratio = 1.0;
     } else {
-      // 减速段：线性从1降到0
       double t = (mid_dist - cruise_dist) / decel_dist;
       t = std::clamp(t, 0.0, 1.0);
       ratio = 1.0 - t;
       ratio = std::max(ratio, 0.0);
     }
-    // 保证最小速度
+
     if (ratio < 0.01 && seg_len > 0.1) {
       ratio = 0.01;
     }
@@ -220,7 +229,7 @@ void PurePursuitController::parsePathToVelocities(const nav_msgs::msg::Path &pat
     accumulated += seg_len;
   }
 
-  RCLCPP_INFO(logger_, "路径插值点: %zu, 指令数: %zu", interpolated.size(), direction_queue_.size());
+  //RCLCPP_INFO(logger_, "路径插值点: %zu, 指令数: %zu", interpolated.size(), direction_queue_.size());
 }
 
 void PurePursuitController::stopMovement()
@@ -230,7 +239,7 @@ void PurePursuitController::stopMovement()
   while (!direction_queue_.empty()) direction_queue_.pop();
 
   geometry_msgs::msg::Pose2D stop;
-  stop.x = 0.0; stop.y = 0.0; stop.theta = 0.0;
+  stop.x = 0.0; stop.y = 0.0; stop.theta = fire_angle_;
   pose_pub_->publish(stop);
   current_speed_ratio_ = 0.0;
   calculatePwmParams(0.0);
@@ -238,6 +247,8 @@ void PurePursuitController::stopMovement()
 
 void PurePursuitController::pwmTimerCallback()
 {
+  // 【重要】移除 rclcpp::spin()，避免阻塞和死锁
+
   // 恢复机制
   if (!is_active_ && !direction_queue_.empty()) {
     RCLCPP_WARN(logger_, "恢复执行");
@@ -255,7 +266,7 @@ void PurePursuitController::pwmTimerCallback()
 
   if (!is_active_) {
     geometry_msgs::msg::Pose2D stop;
-    stop.x = 0.0; stop.y = 0.0; stop.theta = 0.0;
+    stop.x = 0.0; stop.y = 0.0; stop.theta = fire_angle_;
     pose_pub_->publish(stop);
     return;
   }
@@ -272,23 +283,23 @@ void PurePursuitController::pwmTimerCallback()
         is_moving_ = true;
         current_speed_ratio_ = current_command_.speed_ratio;
         calculatePwmParams(current_speed_ratio_);
-        RCLCPP_DEBUG(logger_, "下一条: ratio=%.2f, dur=%.3f, 剩余%zu",
-                     current_speed_ratio_, current_command_.duration, direction_queue_.size());
+        //RCLCPP_DEBUG(logger_, "下一条: ratio=%.2f, dur=%.3f, 剩余%zu",
+         //            current_speed_ratio_, current_command_.duration, direction_queue_.size());
       } else {
         is_active_ = false;
         current_speed_ratio_ = 0.0;
         calculatePwmParams(0.0);
         geometry_msgs::msg::Pose2D stop;
-        stop.x = 0.0; stop.y = 0.0; stop.theta = 0.0;
+        stop.x = 0.0; stop.y = 0.0; stop.theta = fire_angle_;
         pose_pub_->publish(stop);
-        RCLCPP_INFO(logger_, "路径完成，停止");
+        //RCLCPP_INFO(logger_, "路径完成，停止");
       }
     }
   }
 
   if (is_moving_) {
     geometry_msgs::msg::Pose2D cmd;
-    cmd.theta = 0.0;
+    cmd.theta = fire_angle_;
     if (sending_direction_) {
       cmd.x = -current_command_.direction.y;
       cmd.y = -current_command_.direction.x;
@@ -311,22 +322,23 @@ void PurePursuitController::pwmTimerCallback()
 
 void PurePursuitController::cleanup()
 {
-  RCLCPP_INFO(logger_, "清理控制器");
+  //RCLCPP_INFO(logger_, "清理控制器");
   stopMovement();
   pose_pub_.reset();
   pwm_timer_.reset();
+  angle_sub_.reset();
 }
 
 void PurePursuitController::activate()
 {
-  RCLCPP_INFO(logger_, "激活控制器");
+  //RCLCPP_INFO(logger_, "激活控制器");
   pose_pub_->on_activate();
   is_active_ = true;
 }
 
 void PurePursuitController::deactivate()
 {
-  RCLCPP_INFO(logger_, "停用控制器");
+  //RCLCPP_INFO(logger_, "停用控制器");
   pose_pub_->on_deactivate();
   stopMovement();
 }
@@ -339,12 +351,12 @@ void PurePursuitController::setSpeedLimit(const double &speed_limit, const bool 
     speed_ratio_ = speed_limit / max_speed_;
   }
   speed_ratio_ = std::clamp(speed_ratio_, 0.0, 1.0);
-  RCLCPP_WARN(logger_, "速度比例更新为 %.2f", speed_ratio_);
+  //RCLCPP_WARN(logger_, "速度比例更新为 %.2f", speed_ratio_);
 }
 
 void PurePursuitController::setPlan(const nav_msgs::msg::Path &path)
 {
-  RCLCPP_INFO(logger_, "收到新路径，%zu 个点", path.poses.size());
+  //RCLCPP_INFO(logger_, "收到新路径，%zu 个点", path.poses.size());
   stopMovement();
 
   parsePathToVelocities(path);
@@ -359,8 +371,8 @@ void PurePursuitController::setPlan(const nav_msgs::msg::Path &path)
     pwm_counter_ = 0;
     current_speed_ratio_ = current_command_.speed_ratio;
     calculatePwmParams(current_speed_ratio_);
-    RCLCPP_INFO(logger_, "开始执行: ratio=%.2f, dur=%.3f, 剩余%zu条",
-                current_speed_ratio_, current_command_.duration, direction_queue_.size());
+    //RCLCPP_INFO(logger_, "开始执行: ratio=%.2f, dur=%.3f, 剩余%zu条",
+    //            current_speed_ratio_, current_command_.duration, direction_queue_.size());
   } else {
     RCLCPP_WARN(logger_, "无有效指令");
   }
