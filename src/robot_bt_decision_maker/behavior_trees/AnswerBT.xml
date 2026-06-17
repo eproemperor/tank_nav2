@@ -2,13 +2,13 @@
 <root main_tree_to_execute="BehaviorTree">
     <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
-        <Sequence name="导航主序列">
+        <ReactiveSequence>
             <Action ID="UpdateMapinfo" name="更新地图" sendpasmode="{sendpasmode}"/>
             <Condition ID="IfGameStart" name="检查开始" startflag="{startflag}"/>
             <Action ID="GoBase" goal="{goal}" name="决策目标"/>
             <Action ID="Fire"/>
             <Action ID="NavigateToPose" goal="{goal}" name="导航到目标"/>
-        </Sequence>
+        </ReactiveSequence>
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>

@@ -65,10 +65,12 @@ namespace nav2_behavior_tree
         bool enemy_is_exist;
         double enemy_x;
         double enemy_y;
+        bool is_bullet_low;
 
         rclcpp::Node::SharedPtr node_;
         geometry_msgs::msg::Pose2D direction;
         rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr Pos_;
+        rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr Pos_angle;
         geometry_msgs::msg::Pose2D Pose2D_;
         rclcpp::Time last_time_;  
         messageprocess::RobotMsgProcess RobotMsgProcess_;

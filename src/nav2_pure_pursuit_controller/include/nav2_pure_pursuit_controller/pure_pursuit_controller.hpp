@@ -55,6 +55,7 @@ protected:
   void pwmTimerCallback();
   void calculatePwmParams(double speed_ratio);
   void stopMovement();
+  void mapCallback(const geometry_msgs::msg::Pose2D::SharedPtr msg);
 
   rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
@@ -62,6 +63,7 @@ protected:
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
   rclcpp::Logger logger_{rclcpp::get_logger("PurePursuitController")};
   rclcpp::Clock::SharedPtr clock_;
+  rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr angle_sub_;
 
   double speed_ratio_;
   double pwm_freq_;

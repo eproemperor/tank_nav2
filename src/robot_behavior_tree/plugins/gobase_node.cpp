@@ -82,7 +82,7 @@ namespace nav2_behavior_tree
         }
         else if (enemy_num != 0 && enemy_is_exist)
         {
-            if (abs(sentry_x - enemy_x) > 2 && abs(sentry_y - enemy_y) > 2)
+            if (abs(sentry_x - enemy_x) > 0.5 && abs(sentry_y - enemy_y) > 0.5)
             {
                 return TargetType::ENEMY;
             }

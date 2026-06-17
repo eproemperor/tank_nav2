@@ -10,6 +10,9 @@ namespace nav2_behavior_tree
         Pos_ = node_->create_publisher<geometry_msgs::msg::Pose2D>(
             "/pose",
             10);
+        Pos_angle = node_->create_publisher<geometry_msgs::msg::Pose2D>(
+            "/pose_angle",
+            10);
         Pos_send_ = node_->create_publisher<example_interfaces::msg::Bool>(
             "/shoot",
             10);
@@ -27,7 +30,7 @@ namespace nav2_behavior_tree
         config().blackboard->get<bool>("enemy_is_exist", enemy_is_exist);
         config().blackboard->get<double>("enemy_x", enemy_x);
         config().blackboard->get<double>("enemy_y", enemy_y);
-
+        config().blackboard->get<bool>("is_bullet_low",is_bullet_low);
         config().blackboard->get<int>("enemy_num", enemy_num);
         RCLCPP_INFO(node_->get_logger(), "攻击节点就绪");
     }
@@ -52,13 +55,18 @@ namespace nav2_behavior_tree
 
     void Fire::fire(double theta)
     {
-        sleep(0.5);
+        sleep(0.1);
         Pose2D_.theta = theta;
         Pose2D_.x = 0;
         Pose2D_.y = 0;
-        Pos_->publish(Pose2D_);
         sendbool.data = true;
+        Pos_->publish(Pose2D_);
         Pos_send_->publish(sendbool);
+        Pos_angle->publish(Pose2D_);
+        Pos_send_->publish(sendbool);
+        Pos_angle->publish(Pose2D_);
+        Pos_angle->publish(Pose2D_);
+        Pos_angle->publish(Pose2D_);
         RCLCPP_INFO(node_->get_logger(), "攻击角度: %.2f degrees", theta);
     }
 
@@ -75,8 +83,8 @@ namespace nav2_behavior_tree
         config().blackboard->get<bool>("enemy_is_exist", enemy_is_exist);
         config().blackboard->get<double>("enemy_x", enemy_x);
         config().blackboard->get<double>("enemy_y", enemy_y);
-
         config().blackboard->get<int>("enemy_num", enemy_num);
+        config().blackboard->get<bool>("is_bullet_low",is_bullet_low);
     }
 
     bool Fire::calculatedistance()
@@ -101,7 +109,6 @@ namespace nav2_behavior_tree
     BT::NodeStatus Fire::tick()
     {
         updateposition();
-        RCLCPP_INFO(node_->get_logger(), "攻击节点更新");
         if (calculatedistance())
         {
             if (enemy_num != 0 && enemy_is_exist)
@@ -119,7 +126,7 @@ namespace nav2_behavior_tree
             else
             {
                 RCLCPP_WARN(node_->get_logger(), "No target available to fire");
-                return BT::NodeStatus::FAILURE;
+                return BT::NodeStatus::SUCCESS;
             }
 
             fire(theta);
