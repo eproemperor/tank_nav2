@@ -103,6 +103,11 @@ namespace nav2_behavior_tree
             rclcpp::SystemDefaultsQoS(),
             std::bind(&UpdateMapinfo::mapInfoCallback, this, std::placeholders::_1));
 
+        isblock_sub_ = node_->create_subscription<std_msgs::msg::Bool>(
+            "/isblock",
+            10,
+            std::bind(&UpdateMapinfo::blockCallback, this, std::placeholders::_1));
+
         RCLCPP_INFO(node_->get_logger(), "MapSubscriber node initialized");
     }
 
@@ -254,8 +259,8 @@ namespace nav2_behavior_tree
         std::lock_guard<std::mutex> lock(data_mutex);
         latest_map = *msg;
         map_received = true;
-        //RCLCPP_DEBUG(node_->get_logger(), "Map received: %dx%d",
-        //             msg->info.width, msg->info.height);
+        // RCLCPP_DEBUG(node_->get_logger(), "Map received: %dx%d",
+        //              msg->info.width, msg->info.height);
     };
 
     void UpdateMapinfo::odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
@@ -296,7 +301,12 @@ namespace nav2_behavior_tree
         is_bullet_low = msg->is_bullet_low;
 
         map_info_received = true;
-        //RCLCPP_INFO(node_->get_logger(), "接受信息:x=%.2f, y=%.2f", sentry_x, sentry_y);
+        // RCLCPP_INFO(node_->get_logger(), "接受信息:x=%.2f, y=%.2f", sentry_x, sentry_y);
+    };
+
+    void UpdateMapinfo::blockCallback(const std_msgs::msg::Bool::SharedPtr msg)
+    {
+        isblock = msg->data;
     };
 
     BT::NodeStatus UpdateMapinfo::tick()
@@ -390,6 +400,7 @@ namespace nav2_behavior_tree
         config().blackboard->set("robot_pose", latest_odom);
         config().blackboard->set("map_ready", true);
         config().blackboard->set("is_out_of_center", is_out_of_center);
+        config().blackboard->set<bool>("isblock", isblock);
 
         return BT::NodeStatus::SUCCESS;
     }

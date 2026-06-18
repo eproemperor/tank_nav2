@@ -32,6 +32,7 @@ namespace nav2_behavior_tree
         config().blackboard->get<double>("enemy_y", enemy_y);
         config().blackboard->get<bool>("is_bullet_low", is_bullet_low);
         config().blackboard->get<int>("enemy_num", enemy_num);
+        config().blackboard->get<bool>("isblock", isblock);
         RCLCPP_INFO(node_->get_logger(), "攻击节点就绪");
     }
 
@@ -44,46 +45,52 @@ namespace nav2_behavior_tree
     }
 
     double Fire::calangle(double &x1, double &y1, double &x2, double &y2)
-{
-    double dx = x2 - x1;
-    double dy = -y2 + y1; // y轴向上为正
-    double angle_rad = atan2(dy, dx);
+    {
+        double dx = x2 - x1;
+        double dy = -y2 + y1; // y轴向上为正
+        double angle_rad = atan2(dy, dx);
 
-    // 归一化到 [-π, π]
-    while (angle_rad > M_PI)
-        angle_rad -= 2 * M_PI;
-    while (angle_rad < -M_PI)
-        angle_rad += 2 * M_PI;
+        // 归一化到 [-π, π]
+        while (angle_rad > M_PI)
+            angle_rad -= 2 * M_PI;
+        while (angle_rad < -M_PI)
+            angle_rad += 2 * M_PI;
 
-    const double eps = 5 * M_PI / 180; // 5°容差
+        const double eps = 5 * M_PI / 180; // 5°容差
 
-    double axis[4] = {0, M_PI / 2, M_PI, -M_PI / 2};
-    for (int i = 0; i < 4; i++) {
-        if (fabs(angle_rad - axis[i]) < eps) {
-            return axis[i]; // 在坐标轴容差内，返回坐标轴值
+        double axis[4] = {0, M_PI / 2, M_PI, -M_PI / 2};
+        for (int i = 0; i < 4; i++)
+        {
+            if (fabs(angle_rad - axis[i]) < eps)
+            {
+                return axis[i]; // 在坐标轴容差内，返回坐标轴值
+            }
         }
-    }
 
-    // 再检查对角线方向
-    const double diag[4] = {M_PI / 4, 3 * M_PI / 4, -3 * M_PI / 4, -M_PI / 4};
-    for (int i = 0; i < 4; i++) {
-        if (fabs(angle_rad - diag[i]) < eps) {
-            return angle_rad; // 在对角线容差内，返回原值
+        // 再检查对角线方向
+        const double diag[4] = {M_PI / 4, 3 * M_PI / 4, -3 * M_PI / 4, -M_PI / 4};
+        for (int i = 0; i < 4; i++)
+        {
+            if (fabs(angle_rad - diag[i]) < eps)
+            {
+                return angle_rad; // 在对角线容差内，返回原值
+            }
         }
-    }
 
-    // 最后，归类到最近的坐标轴
-    int best = 0;
-    double min_diff = fabs(angle_rad - axis[0]);
-    for (int i = 1; i < 4; i++) {
-        double diff = fabs(angle_rad - axis[i]);
-        if (diff < min_diff) {
-            min_diff = diff;
-            best = i;
+        // 最后，归类到最近的坐标轴
+        int best = 0;
+        double min_diff = fabs(angle_rad - axis[0]);
+        for (int i = 1; i < 4; i++)
+        {
+            double diff = fabs(angle_rad - axis[i]);
+            if (diff < min_diff)
+            {
+                min_diff = diff;
+                best = i;
+            }
         }
+        return axis[best];
     }
-    return axis[best];
-}
 
     void Fire::fire(double theta)
     {
@@ -114,13 +121,17 @@ namespace nav2_behavior_tree
         config().blackboard->get<double>("enemy_y", enemy_y);
         config().blackboard->get<int>("enemy_num", enemy_num);
         config().blackboard->get<bool>("is_bullet_low", is_bullet_low);
+        config().blackboard->get<bool>("isblock", isblock);
     }
 
     bool Fire::calculatedistance()
     {
-        if (!Fire::enemy_num == 0)
+        // if (isblock){
+        // RCLCPP_INFO(node_->get_logger(), "处于遮挡");}
+        // else{RCLCPP_INFO(node_->get_logger(), "没有处于遮挡");}
+        if (!Fire::enemy_num == 0 && (!isblock))
         {
-            if (abs((sentry_x - enemy_x)) < 0.8 && abs((sentry_y - enemy_y)) < 0.8)
+            if (abs((sentry_x - enemy_x)) < 2 && abs((sentry_y - enemy_y)) < 2)
             {
                 return true;
             }

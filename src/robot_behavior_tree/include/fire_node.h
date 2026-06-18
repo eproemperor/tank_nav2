@@ -66,6 +66,7 @@ namespace nav2_behavior_tree
         double enemy_x;
         double enemy_y;
         bool is_bullet_low;
+        bool isblock;
 
         rclcpp::Node::SharedPtr node_;
         geometry_msgs::msg::Pose2D direction;

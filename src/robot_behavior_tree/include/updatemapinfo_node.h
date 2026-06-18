@@ -29,6 +29,7 @@ bool is_bullet_low
 #include "robot_msgs/msg/map_info.hpp"
 #include "robot_msgs/msg/map_info_msgs.hpp"
 #include "behaviortree_cpp_v3/bt_factory.h"
+#include "std_msgs/msg/bool.hpp"
 
 #define FIAl 0
 #define MYSUCCESS 1
@@ -229,6 +230,8 @@ namespace nav2_behavior_tree
         double greenexit_x;
         double greenexit_y;
 
+        bool isblock;
+
         void InitMap();
         void updatemsg(TargetType type, double x, double y, bool is_exist, bool is_out_of_center);
 
@@ -236,16 +239,19 @@ namespace nav2_behavior_tree
         void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);
         void odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg);
         void mapInfoCallback(const robot_msgs::msg::MapInfoMsgs::SharedPtr msg);
+        void blockCallback(const std_msgs::msg::Bool::SharedPtr msg);
 
         // 订阅者成员变量
         rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr map_sub_;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
         rclcpp::Subscription<robot_msgs::msg::MapInfoMsgs>::SharedPtr map_info_sub_;
+        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr isblock_sub_;
 
         rclcpp::Node::SharedPtr node_;
         nav_msgs::msg::OccupancyGrid latest_map;
         nav_msgs::msg::Odometry latest_odom;
         robot_msgs::msg::MapInfoMsgs latest_map_info;
+        std_msgs::msg::Bool blockMsg;
     };
 
 };

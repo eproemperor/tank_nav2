@@ -100,6 +100,7 @@ DecisionMakerNode::DecisionMakerNode(std::string name) : Node(name)
     blackboard_->set<double>("enemy_x", enemy_x);
     blackboard_->set<double>("enemy_y", enemy_y);
 
+    blackboard_->set<bool>("isblock", true);
     blackboard_->set<int>("enemy_num", 2);
     blackboard_->set<double>("sentry_hp", 100);
     blackboard_->set<bool>("is_transfering", false);
@@ -251,6 +252,7 @@ bool DecisionMakerNode::loadBehaviorTree(const std::string &bt_xml_filename, BT:
             blackboard_->set<double>("enemy_x", enemy_x);
             blackboard_->set<double>("enemy_y", enemy_y);
 
+            blackboard_->set<bool>("isblock", true);
             blackboard_->set<int>("enemy_num", 2);
             blackboard_->set<double>("sentry_hp", 100);
             blackboard_->set<bool>("is_transfering", false);

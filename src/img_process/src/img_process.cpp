@@ -219,7 +219,6 @@ void ImgProcess::imageCallback(sensor_msgs::msg::Image rosImage)
     bool blocked = false;
     if (mapInfo[SENTRY].is_exist && mapInfo[ENEMY].is_exist)
     {
-        // 将世界坐标 (米) 转换为地图像素坐标 (分辨率 0.1 m/pixel)
         int sx = static_cast<int>(mapInfo[SENTRY].pos.x / 0.1);
         int sy = static_cast<int>(mapInfo[SENTRY].pos.y / 0.1);
         int ex = static_cast<int>(mapInfo[ENEMY].pos.x / 0.1);
@@ -231,7 +230,7 @@ void ImgProcess::imageCallback(sensor_msgs::msg::Image rosImage)
         ex = std::clamp(ex, 0, 255);
         ey = std::clamp(ey, 0, 127);
 
-        // Bresenham 直线遍历，检测是否有障碍物
+        // Bresenham 直线遍历
         int dx = std::abs(ex - sx), dy = std::abs(ey - sy);
         int stepX = (sx < ex) ? 1 : -1;
         int stepY = (sy < ey) ? 1 : -1;
@@ -239,7 +238,9 @@ void ImgProcess::imageCallback(sensor_msgs::msg::Image rosImage)
         int x = sx, y = sy;
         while (true)
         {
-            if (pixel_status_map[x][y] == OBSTACLE)
+            int imgY = mapImage.rows - 1 - y;
+            cv::Vec3b pixel = mapImage.at<cv::Vec3b>(cv::Point(x, imgY));
+            if (pixel[0] == wallColor[0] && pixel[1] == wallColor[1] && pixel[2] == wallColor[2])
             {
                 blocked = true;
                 break;
@@ -264,9 +265,9 @@ void ImgProcess::imageCallback(sensor_msgs::msg::Image rosImage)
     std_msgs::msg::Bool blockMsg;
     blockMsg.data = blocked;
     isBlockPublisher->publish(blockMsg);
-    // if(blockMsg.data){
-    // RCLCPP_INFO(this->get_logger(), "遮挡检测：存在遮挡");}
-    // else{RCLCPP_INFO(this->get_logger(), "遮挡检测：无遮挡");}
+    // if (blocked)
+    //  RCLCPP_INFO(this->get_logger(), "遮挡检测：存在遮挡");}
+    // else{RCLCPP_INFO(this->get_logger(), "遮挡检测：无");}
 
     //******************* test ********************
 

@@ -123,6 +123,7 @@ private:
     double navvelre;
     double goal_x;
     double goal_y;
+    bool isblock;
 
     bool loadBehaviorTree(const std::string &bt_xml_filename, BT::Blackboard::Ptr blackboard);
     void registerBehaviorTreeNodes(BT::BehaviorTreeFactory &factory);
