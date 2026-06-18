@@ -13,7 +13,6 @@
 #include <queue>
 #include <chrono>
 
-
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/point32.hpp>
 #include <sensor_msgs/msg/image.hpp>
@@ -36,7 +35,8 @@
 #include "robot_msgs/msg/map_info_msgs.hpp"
 #include "std_msgs/msg/bool.hpp"
 
-enum TargetType : uint8_t {
+enum TargetType : uint8_t
+{
     STAR = 0,
     BASE = 1,
     ENEMY_BASE = 2,
@@ -48,18 +48,19 @@ enum TargetType : uint8_t {
     GREENEXIT = 8,
 };
 
-enum PixelStatus {
+enum PixelStatus
+{
     REACHABLE = 0,
     UNEXPLORED = 50,
     OBSTACLE = 100
 };
 
-
-class ImgProcess : public rclcpp::Node {
+class ImgProcess : public rclcpp::Node
+{
 public:
     ImgProcess();
 
-    template<typename T>
+    template <typename T>
     void set_posestamp(T &out);
 
     void set_map_info(const cv::Mat &Image, uint8_t type);
@@ -76,8 +77,10 @@ public:
     void check_callback();
 
     // 内联函数：检查是否超出范围
-    inline bool isOutOfRange(const cv::Point2f &pose) {
-        if (mapInfo[STAR].is_out_of_center == false) {
+    inline bool isOutOfRange(const cv::Point2f &pose)
+    {
+        if (mapInfo[STAR].is_out_of_center == false)
+        {
             return true;
         }
         return pose.x / 40 <= mapInfo[STAR].pos.x - 2.5 ||
@@ -87,14 +90,16 @@ public:
     }
 
     // 内联函数：检查是否
-    inline bool isFarFromSentry(const cv::Point2f &pose) {
+    inline bool isFarFromSentry(const cv::Point2f &pose)
+    {
         return pose.x / 40 <= mapInfo[SENTRY].pos.x - 0.6 ||
                pose.x / 40 >= mapInfo[SENTRY].pos.x + 0.6 ||
                (12.8 - pose.y / 40) <= mapInfo[SENTRY].pos.y - 0.6 ||
                (12.8 - pose.y / 40) >= mapInfo[SENTRY].pos.y + 0.6;
     }
 
-    inline bool isInDoor(const cv::Point2f &pose) {
+    inline bool isInDoor(const cv::Point2f &pose)
+    {
         return (pose.x / 40 >= mapInfo[PURPLEENTRY].pos.x - 0.4 &&
                 pose.x / 40 <= mapInfo[PURPLEENTRY].pos.x + 0.4 &&
                 (12.8 - pose.y / 40) >= mapInfo[PURPLEENTRY].pos.y - 0.4 &&
@@ -113,18 +118,20 @@ public:
                 (12.8 - pose.y / 40) <= mapInfo[PURPLEEXIT].pos.y + 0.4);
     }
 
-    inline bool onOutDoor(const cv::Point2f &pose) {
+    inline bool onOutDoor(const cv::Point2f &pose)
+    {
         return (
             pose.x >= one_outdoor_pose.x - 16 &&
             pose.x <= one_outdoor_pose.x + 16 &&
             pose.y >= one_outdoor_pose.y - 16 &&
-            pose.y <= one_outdoor_pose.y + 16
-        );
+            pose.y <= one_outdoor_pose.y + 16);
     }
 
     // 内联函数：检查是否远离敌方基地
-    inline bool isFarFromEnemyBase(const cv::Point2f &pose) {
-        if (mapInfo[ENEMY_BASE].pos.x == 1000) {
+    inline bool isFarFromEnemyBase(const cv::Point2f &pose)
+    {
+        if (mapInfo[ENEMY_BASE].pos.x == 1000)
+        {
             return true;
         }
         return (pose.x / 40 <= mapInfo[ENEMY_BASE].pos.x - 1.0 ||
@@ -136,12 +143,13 @@ public:
     }
 
     // 内联函数：计算两点之间的距离
-    inline double distance(const cv::Point2f &pos1, const geometry_msgs::msg::Pose2D &pos2) {
+    inline double distance(const cv::Point2f &pos1, const geometry_msgs::msg::Pose2D &pos2)
+    {
         return std::sqrt(std::pow(pos1.x / 40 - pos2.x, 2) + std::pow(12.8 - pos1.y / 40 - pos2.y, 2));
     }
 
 private:
-    //颜色阈值参数
+    // 颜色阈值参数
     int B_low_threshold_;
     int B_high_threshold_;
     int G_low_threshold_;
@@ -153,7 +161,7 @@ private:
 
     std::vector<robot_msgs::msg::MapInfo> mapInfo;
 
-    std::vector<std::vector<int> > pixel_status_map;
+    std::vector<std::vector<int>> pixel_status_map;
 
     bool is_transfering_ = false;
     bool is_bullet_low_ = false;
@@ -179,7 +187,7 @@ private:
     const int dx[4] = {-1, 0, 0, 1};
     const int dy[4] = {0, 1, -1, 0};
 
-    //subpub
+    // subpub
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_subscription_;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr mapPublisher;
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pubOdomAftMapped;
@@ -191,4 +199,4 @@ private:
     nav_msgs::msg::Odometry odomAftMapped;
 };
 
-#endif //SRC_IMG_PROCESS_HPP
+#endif // SRC_IMG_PROCESS_HPP
