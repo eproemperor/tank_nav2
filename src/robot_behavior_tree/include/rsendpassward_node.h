@@ -9,6 +9,7 @@
 #include "robot_serial.h"
 #include "math.h"
 #include "example_interfaces/msg/int64.hpp"
+#include "std_msgs/msg/int32.hpp"
 
 namespace nav2_behavior_tree
 {
@@ -50,17 +51,13 @@ namespace nav2_behavior_tree
         double sentry_x;
         double sentry_y;
 
-        // ROS 相关
         rclcpp::Node::SharedPtr node_;
-        rclcpp::Publisher<example_interfaces::msg::Int64>::SharedPtr Pos_passward;
+        rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr Pos_mode_;
 
-        // 串口处理对象
         messageprocess::RobotMsgProcess RobotMsgProcess_;
+        std_msgs::msg::Int32 controlmode;
 
-        // 内部方法
         void updatemsg();
-        void send();
-        void calsendmode();
     };
 }
 

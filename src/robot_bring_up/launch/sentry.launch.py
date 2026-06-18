@@ -93,6 +93,17 @@ def generate_launch_description():
         output="screen",
         condition=IfCondition(param_launch_rviz),
     )
+    serialPro_node = Node(
+        package="serialPro",
+        executable="serialPro_node",
+        name="serialPro_node",
+        output="screen",
+        parameters=[param_yaml_path],
+        # parameters=[{
+        #     'port': '/dev/ttyUSB0',
+        #     'baudrate': 115200,
+        # }]
+    )
 
     # 创建LaunchDescription对象launch_description,用于描述launch文件
     list = [declare_launch_gazebo,
@@ -104,7 +115,8 @@ def generate_launch_description():
             navigation_launch,
             bt_launch,     # 行为树建议单开一个终端方便看info
             img_process_node,
-            rviz_node
+            rviz_node,
+            serialPro_node
             ]
 
     # 返回让ROS2根据launch描述执行节点
