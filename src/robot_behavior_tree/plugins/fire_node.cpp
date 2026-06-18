@@ -56,7 +56,7 @@ namespace nav2_behavior_tree
         while (angle_rad < -M_PI)
             angle_rad += 2 * M_PI;
 
-        const double eps = 5 * M_PI / 180; // 5°容差
+        const double eps = 15 * M_PI / 180; // 5°容差
 
         double axis[4] = {0, M_PI / 2, M_PI, -M_PI / 2};
         for (int i = 0; i < 4; i++)
@@ -102,7 +102,6 @@ namespace nav2_behavior_tree
         Pos_->publish(Pose2D_);
         Pos_angle->publish(Pose2D_);
         Pos_send_->publish(sendbool);
-        Pos_send_->publish(sendbool);
         // RCLCPP_INFO(node_->get_logger(), "攻击角度: %.2f degrees", theta);
     }
 
@@ -131,7 +130,7 @@ namespace nav2_behavior_tree
         // else{RCLCPP_INFO(node_->get_logger(), "没有处于遮挡");}
         if (!Fire::enemy_num == 0 && (!isblock))
         {
-            if (abs((sentry_x - enemy_x)) < 2 && abs((sentry_y - enemy_y)) < 2)
+            if (abs((sentry_x - enemy_x)) < 20 && abs((sentry_y - enemy_y)) < 20)
             {
                 return true;
             }
@@ -149,28 +148,31 @@ namespace nav2_behavior_tree
     BT::NodeStatus Fire::tick()
     {
         updateposition();
-        if (calculatedistance())
+        if (!isblock)
         {
-            if (enemy_num != 0 && enemy_is_exist)
+            if (calculatedistance())
             {
-                theta = calangle(sentry_x, sentry_y, enemy_x, enemy_y);
-                RCLCPP_INFO(node_->get_logger(), "计算敌人位置Targeting enemy at (%.2f, %.2f), angle: %.2f",
-                            enemy_x, enemy_y, theta);
-            }
-            else if (enemy_base_is_exist)
-            {
-                theta = calangle(sentry_x, sentry_y, enemy_base_x, enemy_base_y);
-                // RCLCPP_INFO(node_->get_logger(), "计算基地位置Targeting enemy base at (%.2f, %.2f), angle: %.2f",
-                //             enemy_base_x, enemy_base_y, theta);
-            }
-            else
-            {
-                RCLCPP_WARN(node_->get_logger(), "No target available to fire");
-                return BT::NodeStatus::SUCCESS;
-            }
+                if (enemy_num != 0 && enemy_is_exist)
+                {
+                    theta = calangle(sentry_x, sentry_y, enemy_x, enemy_y);
+                    RCLCPP_INFO(node_->get_logger(), "计算敌人位置Targeting enemy at (%.2f, %.2f), angle: %.2f",
+                                enemy_x, enemy_y, theta);
+                }
+                // else if (enemy_base_is_exist)
+                //{
+                // theta = calangle(sentry_x, sentry_y, enemy_base_x, enemy_base_y);
+                //  RCLCPP_INFO(node_->get_logger(), "计算基地位置Targeting enemy base at (%.2f, %.2f), angle: %.2f",
+                //              enemy_base_x, enemy_base_y, theta);
+                //}
+                else
+                {
+                    RCLCPP_WARN(node_->get_logger(), "No target available to fire");
+                    return BT::NodeStatus::SUCCESS;
+                }
 
-            fire(theta);
-            // RCLCPP_INFO(node_->get_logger(), "攻击已发送");
+                fire(theta);
+                // RCLCPP_INFO(node_->get_logger(), "攻击已发送");
+            }
         }
         return BT::NodeStatus::SUCCESS;
     }

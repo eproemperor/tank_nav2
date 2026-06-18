@@ -78,48 +78,47 @@ namespace nav2_behavior_tree
 
     int Gobase::setTargetType()
     {
-        if (is_bullet_low || sentry_hp <= 60.0)
+        if (is_bullet_low || sentry_hp <= 70.0)
         {
+            RCLCPP_INFO(node_->get_logger(), "目标基地");
             return TargetType::BASE;
         }
         else if (enemy_num != 0 && enemy_is_exist)
         {
             if (abs(sentry_x - enemy_x) > 0.2 && abs(sentry_y - enemy_y) > 0.2)
             {
+                RCLCPP_INFO(node_->get_logger(), "目标敌人");
                 return TargetType::ENEMY;
             }
         }
-        else if (sentry_is_exist && sentry_is_out_of_center)
+        else if (enemy_num == 0&&(abs(sentry_x-star_x)>3)&&(abs(sentry_y-star_y>3)))
         {
-            if (greenentry_is_out_of_center && greenentry_is_exist)
+            if (sentry_is_out_of_center)
             {
+                RCLCPP_INFO(node_->get_logger(), "目标入口");
                 return TargetType::GREENENTRY;
             }
-            else
+            else if (greenentry_is_out_of_center && greenentry_is_exist)
             {
+                RCLCPP_INFO(node_->get_logger(), "目标入口（紫色）");
                 return TargetType::PURPLEENTRY;
             }
         }
-        else if (sentry_is_exist && !sentry_is_out_of_center)
+        else if ((abs(sentry_x-star_x)>5)&&(abs(sentry_y-star_y<3)))
         {
+            RCLCPP_INFO(node_->get_logger(), "目标星星");
             return TargetType::STAR;
         }
-        else if (sentry_is_exist && !sentry_is_out_of_center)
-        {
-            return TargetType::GREENEXIT;
-        }
-        else if (sentry_is_exist && sentry_is_out_of_center)
-        {
-            return TargetType::ENEMY_BASE;
-        }
-        return TargetType::SENTRY;
+
+        RCLCPP_INFO(node_->get_logger(), "目标星星");
+        return TargetType::STAR;
     }
 
     BT::NodeStatus Gobase::tick()
     {
         // 更新黑板数据
         updateBlackboardData();
-
+        config().blackboard->get<bool>("sentry_is_out_of_center", sentry_is_out_of_center);
         auto type = setTargetType();
         switch (type)
         {

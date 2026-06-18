@@ -80,6 +80,7 @@ namespace messageprocess
         bool open();
         void close();
         bool isOpen() const { return is_open; }
+        int getFd() const { return fd; }
 
         int64_t getPassword_rec() const { return Password_rec; }
 

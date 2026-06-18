@@ -185,7 +185,16 @@ void ImgProcess::imageCallback(sensor_msgs::msg::Image rosImage)
     is_transfering_ = (distance_to_purple_entry <= 0.3 || distance_to_green_entry <= 0.3 ||
                        distance_to_purple_exit <= 0.3 || distance_to_green_exit <= 0.3);
     // RCLCPP_INFO(get_logger(), "is_transfering?: %d", is_transfering_);
-
+static int frame_count = 0;
+    if (++frame_count % 30 == 0) {  // 每30帧打印一次
+        if (mapInfo[SENTRY].is_exist) {
+            RCLCPP_INFO(this->get_logger(), 
+                "哨兵: (%.2f, %.2f) | %s", 
+                mapInfo[SENTRY].pos.x, 
+                mapInfo[SENTRY].pos.y,
+                mapInfo[SENTRY].is_out_of_center ? "外" : "内");
+        }
+    }
     publish_map(mapImage, wallColor);
 
     //******************* test ********************
