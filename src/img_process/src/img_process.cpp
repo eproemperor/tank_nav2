@@ -67,6 +67,7 @@ ImgProcess::ImgProcess() : Node("img_process_node") {
     mapPublisher = this->create_publisher<nav_msgs::msg::OccupancyGrid>("/map", map_qos);
     pubOdomAftMapped = this->create_publisher<nav_msgs::msg::Odometry>("/Odometry", 100000);
     pubMapInfo = this->create_publisher<robot_msgs::msg::MapInfoMsgs>("/map_info", rclcpp::SystemDefaultsQoS());
+    isBlockPublisher = this->create_publisher<std_msgs::msg::Bool>("/isblock", 10);
     tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
     auto period_ms = std::chrono::milliseconds(static_cast<int64_t>(300));
@@ -199,6 +200,47 @@ void ImgProcess::imageCallback(sensor_msgs::msg::Image rosImage) {
     cv::circle(findingImage, one_outdoor_pose, 6, cv::Scalar(255, 255, 255), 2);
     cv::imshow("view", findingImage);
     waitKey(1);
+    //============检测哨兵与敌人之间是否有墙体阻挡================
+    bool blocked = false;
+    if (mapInfo[SENTRY].is_exist && mapInfo[ENEMY].is_exist) {
+        // 将世界坐标 (米) 转换为地图像素坐标 (分辨率 0.1 m/pixel)
+        int sx = static_cast<int>(mapInfo[SENTRY].pos.x / 0.1);
+        int sy = static_cast<int>(mapInfo[SENTRY].pos.y / 0.1);
+        int ex = static_cast<int>(mapInfo[ENEMY].pos.x / 0.1);
+        int ey = static_cast<int>(mapInfo[ENEMY].pos.y / 0.1);
+
+        // 边界裁剪
+        sx = std::clamp(sx, 0, 255);
+        sy = std::clamp(sy, 0, 127);
+        ex = std::clamp(ex, 0, 255);
+        ey = std::clamp(ey, 0, 127);
+
+        // Bresenham 直线遍历，检测是否有障碍物
+        int dx = std::abs(ex - sx), dy = std::abs(ey - sy);
+        int stepX = (sx < ex) ? 1 : -1;
+        int stepY = (sy < ey) ? 1 : -1;
+        int err = dx - dy;
+        int x = sx, y = sy;
+        while (true) {
+            if (pixel_status_map[x][y] == OBSTACLE) {
+                blocked = true;
+                break;
+            }
+            if (x == ex && y == ey) break;
+            int e2 = 2 * err;
+            if (e2 > -dy) { err -= dy; x += stepX; }
+            if (e2 < dx) { err += dx; y += stepY; }
+        }
+    }
+
+    // 发布结果
+    std_msgs::msg::Bool blockMsg;
+    blockMsg.data = blocked;
+    isBlockPublisher->publish(blockMsg);
+    //if(blockMsg.data){
+    //RCLCPP_INFO(this->get_logger(), "遮挡检测：存在遮挡");}
+    //else{RCLCPP_INFO(this->get_logger(), "遮挡检测：无遮挡");}
+
     //******************* test ********************
 
 

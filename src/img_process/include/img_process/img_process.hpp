@@ -34,6 +34,7 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include "robot_msgs/msg/map_info.hpp"
 #include "robot_msgs/msg/map_info_msgs.hpp"
+#include "std_msgs/msg/bool.hpp"
 
 enum TargetType : uint8_t {
     STAR = 0,
@@ -185,6 +186,7 @@ private:
     rclcpp::Publisher<robot_msgs::msg::MapInfoMsgs>::SharedPtr pubMapInfo;
     std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
     rclcpp::TimerBase::SharedPtr start_check_timer_;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr isBlockPublisher;
 
     nav_msgs::msg::Odometry odomAftMapped;
 };
