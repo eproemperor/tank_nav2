@@ -119,12 +119,14 @@ namespace nav2_behavior_tree
         // 紫色入口信息
         int purpleentry_name;
         bool purpleentry_is_exist;
+        bool purpleentry_is_out_of_center;
         double purpleentry_x;
         double purpleentry_y;
-        
+
         // 绿色入口信息
         int greenentry_name;
         bool greenentry_is_exist;
+        bool greenentry_is_out_of_center;
         double greenentry_x;
         double greenentry_y;
         

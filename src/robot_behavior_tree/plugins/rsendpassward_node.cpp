@@ -28,12 +28,13 @@ namespace nav2_behavior_tree
     BT::NodeStatus RSendPassward::tick()
     {
         updatemsg();
-        if (!sentry_is_out_of_center)
+        if (!sentry_is_out_of_center && !(enemy_num == 0))
         {
             if (abs(sentry_x - star_x) < 0.2 && abs(sentry_y - star_y) < 0.2)
             {
                 controlmode.data = 1;
                 Pos_mode_->publish(controlmode);
+                RCLCPP_INFO(node_->get_logger(), "发送控制指令");
             }
         }
         // RCLCPP_INFO(node_->get_logger(), "密码发送控制节点");

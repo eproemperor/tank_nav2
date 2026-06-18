@@ -40,6 +40,7 @@ namespace nav2_behavior_tree
         // 紫色入口信息
         config().blackboard->get<int>("purple_entry_name", purpleentry_name);
         config().blackboard->get<bool>("purple_entry_is_exist", purpleentry_is_exist);
+        config().blackboard->get<bool>("purpleentry_is_out_of_center", purpleentry_is_out_of_center);
         config().blackboard->get<double>("purple_entry_x", purpleentry_x);
         config().blackboard->get<double>("purple_entry_y", purpleentry_y);
 
@@ -52,6 +53,7 @@ namespace nav2_behavior_tree
         // 绿色入口信息
         config().blackboard->get<int>("green_entry_name", greenentry_name);
         config().blackboard->get<bool>("green_entry_is_exist", greenentry_is_exist);
+        config().blackboard->get<bool>("greenentry_is_out_of_center", greenentry_is_out_of_center);
         config().blackboard->get<double>("green_entry_x", greenentry_x);
         config().blackboard->get<double>("green_entry_y", greenentry_y);
 
@@ -76,30 +78,37 @@ namespace nav2_behavior_tree
 
     int Gobase::setTargetType()
     {
-        if (is_bullet_low || sentry_hp <= 80.0)
+        if (is_bullet_low || sentry_hp <= 60.0)
         {
             return TargetType::BASE;
         }
         else if (enemy_num != 0 && enemy_is_exist)
         {
-            if (abs(sentry_x - enemy_x) > 0.5 && abs(sentry_y - enemy_y) > 0.5)
+            if (abs(sentry_x - enemy_x) > 0.2 && abs(sentry_y - enemy_y) > 0.2)
             {
                 return TargetType::ENEMY;
             }
         }
-        else if (sendpasmode == 3 && sentry_is_exist && sentry_is_out_of_center)
+        else if (sentry_is_exist && sentry_is_out_of_center)
         {
-            return TargetType::GREENENTRY;
+            if (greenentry_is_out_of_center && greenentry_is_exist)
+            {
+                return TargetType::GREENENTRY;
+            }
+            else
+            {
+                return TargetType::PURPLEENTRY;
+            }
         }
-        else if (sendpasmode == 3 && sentry_is_exist && !sentry_is_out_of_center)
+        else if (sentry_is_exist && !sentry_is_out_of_center)
         {
             return TargetType::STAR;
         }
-        else if (sendpasmode == 4 && sentry_is_exist && !sentry_is_out_of_center)
+        else if (sentry_is_exist && !sentry_is_out_of_center)
         {
             return TargetType::GREENEXIT;
         }
-        else if (sendpasmode == 4 && sentry_is_exist && sentry_is_out_of_center)
+        else if (sentry_is_exist && sentry_is_out_of_center)
         {
             return TargetType::ENEMY_BASE;
         }
@@ -146,7 +155,7 @@ namespace nav2_behavior_tree
         goal_.header.frame_id = "map";
         goal_.header.stamp = node_->now();
         config().blackboard->set("goal", goal_);
-        //RCLCPP_INFO(node_->get_logger(), "GoBase: target type=%d, goal=(%.2f, %.2f)", type, goal_.pose.position.x, goal_.pose.position.y);
+        // RCLCPP_INFO(node_->get_logger(), "GoBase: target type=%d, goal=(%.2f, %.2f)", type, goal_.pose.position.x, goal_.pose.position.y);
 
         return BT::NodeStatus::SUCCESS;
     };

@@ -120,7 +120,7 @@ namespace nav2_behavior_tree
     {
         if (!Fire::enemy_num == 0)
         {
-            if (abs((sentry_x - enemy_x)) < 0.7 && abs((sentry_y - enemy_y)) < 0.7)
+            if (abs((sentry_x - enemy_x)) < 0.8 && abs((sentry_y - enemy_y)) < 0.8)
             {
                 return true;
             }
