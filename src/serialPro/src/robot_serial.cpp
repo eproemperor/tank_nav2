@@ -104,20 +104,29 @@ namespace messageprocess
     }
 
     bool RobotMsgProcess::receive_password()
+{
+    uint8_t buffer[40];
+    int bytes_read = 0;
+    while (bytes_read < 40)
     {
-        uint8_t buffer[40];
-        int bytes_read = 0;
-        while (bytes_read < 40)
-        {
-            int n = ::read(fd, buffer + bytes_read, 40 - bytes_read);
-            if (n > 0)
-                bytes_read += n;
-            else if (n == -1 && errno != EAGAIN)
-                return false;
-        }
-        robot_listener.push(reinterpret_cast<const char*>(buffer), 40);
+        int n = ::read(fd, buffer + bytes_read, 40 - bytes_read);
+        if (n > 0) bytes_read += n;
+        else if (n == -1 && errno != EAGAIN) return false;
+    }
+
+    // 解析帧
+    uint64_t sof = *reinterpret_cast<uint64_t*>(buffer + 0);
+    uint64_t id = *reinterpret_cast<uint64_t*>(buffer + 16);
+    int64_t password = *reinterpret_cast<int64_t*>(buffer + 24);  
+    uint64_t tail = *reinterpret_cast<uint64_t*>(buffer + 32);
+
+    if (sof == 0xAA && id == RECEIVED && tail == 0xBB)
+    {
+        Password_rec = password;  // 存储 -2320256767085552308
         return true;
     }
+    return false;
+}
 
     bool RobotMsgProcess::send_password(uint64_t Password1, uint64_t Password2)
     {

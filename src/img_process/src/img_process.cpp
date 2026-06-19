@@ -185,16 +185,18 @@ void ImgProcess::imageCallback(sensor_msgs::msg::Image rosImage)
     is_transfering_ = (distance_to_purple_entry <= 0.3 || distance_to_green_entry <= 0.3 ||
                        distance_to_purple_exit <= 0.3 || distance_to_green_exit <= 0.3);
     // RCLCPP_INFO(get_logger(), "is_transfering?: %d", is_transfering_);
-static int frame_count = 0;
-    if (++frame_count % 30 == 0) {  // 每30帧打印一次
-        if (mapInfo[SENTRY].is_exist) {
-            RCLCPP_INFO(this->get_logger(), 
-                "哨兵: (%.2f, %.2f) | %s", 
-                mapInfo[SENTRY].pos.x, 
-                mapInfo[SENTRY].pos.y,
-                mapInfo[SENTRY].is_out_of_center ? "外" : "内");
+    /*static int frame_count = 0;
+    if (++frame_count % 30 == 0)
+    { // 每30帧打印一次
+        if (mapInfo[SENTRY].is_exist)
+        {
+            RCLCPP_INFO(this->get_logger(),
+                        "哨兵: (%.2f, %.2f) | %s",
+                        mapInfo[SENTRY].pos.x,
+                        mapInfo[SENTRY].pos.y,
+                        mapInfo[SENTRY].is_out_of_center ? "外" : "内");
         }
-    }
+    }*/
     publish_map(mapImage, wallColor);
 
     //******************* test ********************
@@ -456,15 +458,16 @@ void ImgProcess::set_map_info(const cv::Mat &Image, uint8_t type)
         // cv::circle(Image, centers[0], radius[0], cv::Scalar(0, 0, 255), 2);
         switch (type)
         {
-            case STAR:
-                if (radius[0] > 6) {
-                    mapInfo[type].pos.x = centers[0].x / 40;
-                    mapInfo[type].pos.y = 12.8 - centers[0].y / 40;
-                    mapInfo[type].is_exist = true;
-                    mapInfo[type].is_out_of_center = false;
-                }
-                break;
-            case BASE:
+        case STAR:
+            if (radius[0] > 6)
+            {
+                mapInfo[type].pos.x = centers[0].x / 40;
+                mapInfo[type].pos.y = 12.8 - centers[0].y / 40;
+                mapInfo[type].is_exist = true;
+                mapInfo[type].is_out_of_center = false;
+            }
+            break;
+        case BASE:
         case ENEMY_BASE:
             if (radius[0] > 6)
             {

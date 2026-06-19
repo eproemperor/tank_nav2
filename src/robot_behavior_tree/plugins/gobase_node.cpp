@@ -83,28 +83,33 @@ namespace nav2_behavior_tree
             RCLCPP_INFO(node_->get_logger(), "目标基地");
             return TargetType::BASE;
         }
+        else if (abs(sentry_x - base_x) < 1 && sentry_hp < 90)
+        {
+            return TargetType::BASE;
+            RCLCPP_INFO(node_->get_logger(), "目标基地");
+        }
         else if (enemy_num != 0 && enemy_is_exist)
         {
             if (abs(sentry_x - enemy_x) > 0.2 && abs(sentry_y - enemy_y) > 0.2)
             {
-                RCLCPP_INFO(node_->get_logger(), "目标敌人");
+                // RCLCPP_INFO(node_->get_logger(), "目标敌人");
                 return TargetType::ENEMY;
             }
         }
-        else if (enemy_num == 0&&(abs(sentry_x-star_x)>3)&&(abs(sentry_y-star_y>3)))
+        else if (enemy_num == 0 && sentry_is_out_of_center)
         {
-            
-                RCLCPP_INFO(node_->get_logger(), "目标入口");
-                return TargetType::GREENENTRY;
-            
+
+            RCLCPP_INFO(node_->get_logger(), "目标入口");
+
+            return TargetType::PURPLEENTRY;
         }
-        else if ((abs(sentry_x-star_x)>5)&&(abs(sentry_y-star_y<3)))
+        else if ((abs(sentry_x - star_x) > 5) && (abs(sentry_y - star_y < 3)))
         {
-            RCLCPP_INFO(node_->get_logger(), "目标星星");
+             RCLCPP_INFO(node_->get_logger(), "目标星星");
             return TargetType::STAR;
         }
 
-        RCLCPP_INFO(node_->get_logger(), "目标星星");
+         RCLCPP_INFO(node_->get_logger(), "目标星星");
         return TargetType::STAR;
     }
 
@@ -140,6 +145,12 @@ namespace nav2_behavior_tree
             goal_.pose.position.x = greenexit_x;
             goal_.pose.position.y = greenexit_y;
             break;
+        case TargetType::PURPLEENTRY:
+            goal_.pose.position.x = purpleentry_x;
+            goal_.pose.position.y = purpleentry_y;
+            //RCLCPP_INFO(node_->get_logger(), "设置入口坐标%f,%f",purpleentry_x,purpleentry_y);
+            //RCLCPP_INFO(node_->get_logger(), "坐标%f,%f",sentry_x,sentry_y);
+            break; 
         default:
             goal_.pose.position.x = sentry_x;
             goal_.pose.position.y = sentry_y;

@@ -401,15 +401,7 @@ namespace nav2_behavior_tree
         config().blackboard->set("map_ready", true);
         config().blackboard->set("is_out_of_center", is_out_of_center);
         config().blackboard->set<bool>("isblock", isblock);
-        if (sentry_is_out_of_center)
-        {
-            RCLCPP_INFO(node_->get_logger(), "哨兵在外");
-        }
-        else
-        {
-            RCLCPP_INFO(node_->get_logger(), "哨兵在中心");
-        }
-        RCLCPP_INFO(node_->get_logger(), "目标星星%f,%f",star_x,star_y);
+        
         return BT::NodeStatus::SUCCESS;
     }
 
