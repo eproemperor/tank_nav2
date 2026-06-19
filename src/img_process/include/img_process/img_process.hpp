@@ -79,8 +79,9 @@ public:
     // 内联函数：检查是否超出范围
     inline bool isOutOfRange(const cv::Point2f &pose)
     {
-        if (mapInfo[STAR].is_out_of_center == false)
+        if (mapInfo[STAR].is_out_of_center == true)
         {
+            RCLCPP_WARN(get_logger(), ">>>>>>>>>>>>>>>>>STAR is_out_of_center");
             return true;
         }
         return pose.x / 40 <= mapInfo[STAR].pos.x - 2.5 ||
