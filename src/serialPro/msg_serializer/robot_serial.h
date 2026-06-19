@@ -74,7 +74,7 @@ namespace messageprocess
         bool initwriter();
 
     public:
-        RobotMsgProcess(const std::string &port = "/dev/pts/3");
+        RobotMsgProcess(const std::string &port = "/dev/pts/4");
         ~RobotMsgProcess();
 
         bool open();

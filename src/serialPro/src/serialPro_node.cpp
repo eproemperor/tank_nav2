@@ -4,14 +4,9 @@
 #include "robot_serial.h"
 
 #include <memory>
-#include <vector>
+#include <queue>
 #include <thread>
 #include <atomic>
-#include <queue>
-#include <sys/select.h>
-#include <unistd.h>
-#include <cerrno>
-#include <cstring>
 
 using namespace messageprocess;
 
@@ -20,7 +15,7 @@ class SerialProNode : public rclcpp::Node
 public:
     SerialProNode() : Node("serialPro_node")
     {
-        this->declare_parameter<std::string>("port", "/dev/pts/3");
+        this->declare_parameter<std::string>("port", "/dev/pts/2");
         std::string port = this->get_parameter("port").as_string();
 
         serial_.reset(new RobotMsgProcess(port));
@@ -43,17 +38,11 @@ public:
         password_pub_ = this->create_publisher<example_interfaces::msg::Int64>(
             "/password", 10);
 
-        running_ = true;
-        read_thread_ = std::thread(&SerialProNode::readLoop, this);
-
         RCLCPP_INFO(this->get_logger(), "密码发送节点启动");
     }
 
     ~SerialProNode()
     {
-        running_ = false;
-        if (read_thread_.joinable())
-            read_thread_.join();
         if (serial_)
             serial_->close();
     }
@@ -69,16 +58,25 @@ private:
             uint64_t p1 = segment_queue_.front(); segment_queue_.pop();
             uint64_t p2 = segment_queue_.front(); segment_queue_.pop();
 
-            if (serial_->send_password(p1, p2))
+            // ⭐ 发送密码片段
+            if (!serial_->send_password(p1, p2))
             {
-                RCLCPP_INFO(this->get_logger(), "✅ 自动发送 [%ld, %ld] 至串口", p1, p2);
+                RCLCPP_WARN(this->get_logger(), "❌ 发送失败");
+                continue;
+            }
+            
+            RCLCPP_INFO(this->get_logger(), "✅ 已发送 [%ld, %ld], 等待判题机回复...", p1, p2);
+            
+            // ⭐ 立即接收判题机回复（阻塞等待，带超时）
+            if (serial_->receive_password())
+            {
+                int64_t pwd = serial_->getPassword_rec();
+                stored_password_ = pwd;
+                RCLCPP_INFO(this->get_logger(), "✅ 收到判题机密码: %ld", pwd);
             }
             else
             {
-                RCLCPP_WARN(this->get_logger(), "❌ 发送失败");
-                // 可选：重新放回队列
-                // segment_queue_.push(p1);
-                // segment_queue_.push(p2);
+                RCLCPP_WARN(this->get_logger(), "⚠️ 判题机无回复或超时");
             }
         }
     }
@@ -87,56 +85,15 @@ private:
     {
         if (msg->data != 0 && stored_password_ != 0)
         {
-            RCLCPP_INFO(this->get_logger(), "📤 接收发送指令, 发送密码: %ld", stored_password_);
+            RCLCPP_INFO(this->get_logger(), "📤 接收发送指令, 发布密码: %ld", stored_password_);
             auto pub_msg = example_interfaces::msg::Int64();
             pub_msg.data = stored_password_;
             password_pub_->publish(pub_msg);
-            // 如果需要清空，取消注释下一行
-            // stored_password_ = 0;
+            // stored_password_ = 0;  // 可选：发布后清空
         }
         else if (msg->data != 0 && stored_password_ == 0)
         {
             RCLCPP_WARN(this->get_logger(), "⚠️ 没有存储的密码");
-        }
-        else
-        {
-            RCLCPP_INFO(this->get_logger(), "无效命令 (data=0)");
-        }
-    }
-
-    void readLoop()
-    {
-        fd_set read_fds;
-        struct timeval timeout;
-
-        while (running_ && rclcpp::ok())
-        {
-            int fd = serial_->getFd();   // 需要添加 getFd()
-            if (fd < 0) break;
-
-            FD_ZERO(&read_fds);
-            FD_SET(fd, &read_fds);
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 100000;  // 100ms
-
-            int ret = select(fd + 1, &read_fds, nullptr, nullptr, &timeout);
-            if (ret < 0)
-            {
-                RCLCPP_ERROR(this->get_logger(), "select error: %s", strerror(errno));
-                break;
-            }
-            else if (ret == 0)
-            {
-                continue;  // 无数据，继续循环
-            }
-
-            // 有数据可读，调用 receive_password（内部会阻塞直到读满40字节，但数据已就绪）
-            if (serial_->receive_password())
-            {
-                int64_t pwd = serial_->getPassword_rec();
-                stored_password_ = pwd;
-                RCLCPP_INFO(this->get_logger(), "接收并存储密码: %ld", pwd);
-            }
         }
     }
 
@@ -147,8 +104,6 @@ private:
 
     std::queue<uint64_t> segment_queue_;
     int64_t stored_password_ = 0;
-    std::atomic<bool> running_;
-    std::thread read_thread_;
 };
 
 int main(int argc, char * argv[])

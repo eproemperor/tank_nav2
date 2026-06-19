@@ -93,16 +93,10 @@ namespace nav2_behavior_tree
         }
         else if (enemy_num == 0&&(abs(sentry_x-star_x)>3)&&(abs(sentry_y-star_y>3)))
         {
-            if (sentry_is_out_of_center)
-            {
+            
                 RCLCPP_INFO(node_->get_logger(), "目标入口");
                 return TargetType::GREENENTRY;
-            }
-            else if (greenentry_is_out_of_center && greenentry_is_exist)
-            {
-                RCLCPP_INFO(node_->get_logger(), "目标入口（紫色）");
-                return TargetType::PURPLEENTRY;
-            }
+            
         }
         else if ((abs(sentry_x-star_x)>5)&&(abs(sentry_y-star_y<3)))
         {
